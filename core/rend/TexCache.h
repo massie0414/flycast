@@ -78,6 +78,8 @@ public:
 		custom_load_in_progress = 0;
 		gpuPalette = other.gpuPalette;
 		area = other.area;
+		is_custom_replaced = other.is_custom_replaced;
+		renderTarget = other.renderTarget;
 	}
 
 	TSP tsp;        	//dreamcast texture parameters
@@ -127,7 +129,7 @@ public:
 		return tcw.MipMapped != 0 && tcw.ScanOrder == 0 && config::UseMipmaps;
 	}
 
-	const char* GetPixelFormatName()
+	const char* GetPixelFormatName() const
 	{
 		switch (tcw.PixelFmt)
 		{
@@ -155,20 +157,22 @@ public:
 	//true if : dirty or paletted texture and hashes don't match
 	bool NeedsUpdate();
 	virtual bool Delete();
-	virtual ~BaseTextureCacheData() = default;
+	virtual ~BaseTextureCacheData();
 	void protectVRam();
 	void unprotectVRam();
 	void invalidate();
+	void markRenderTarget();
 
 	static bool IsGpuHandledPaletted(TSP tsp, TCW tcw, int area)
 	{
 		// Some palette textures are handled on the GPU
 		// This is currently limited to textures using nearest or bilinear filtering and not mipmapped.
 		// In 2-volume mode, only area 0 can be handled on the gpu.
-		// Enabling texture upscaling or dumping also disables this mode.
+		// Upscaling, dumping, and preview capture require decoded palette colors.
 		return (tcw.PixelFmt == PixelPal4 || tcw.PixelFmt == PixelPal8)
 				&& config::TextureUpscale == 1
 				&& !config::DumpTextures
+				&& !config::ShowTextureViewer
 				&& !custom_texture.enabled()
 				&& tsp.FilterMode <= 1
 				&& !tcw.MipMapped
@@ -176,6 +180,10 @@ public:
 				&& area == 0;
 	}
 	static void SetDirectXColorOrder(bool enabled);
+
+private:
+	u64 previewGeneration = 0;
+	bool renderTarget = false;
 };
 
 template<typename Texture>
@@ -238,7 +246,9 @@ public:
 		for (tsp.TexU = 0; tsp.TexU <= 7 && (8u << tsp.TexU) < width; tsp.TexU++);
 		for (tsp.TexV = 0; tsp.TexV <= 7 && (8u << tsp.TexV) < height; tsp.TexV++);
 
-		return getTextureCacheData(tsp, tcw, 0);
+		Texture *texture = getTextureCacheData(tsp, tcw, 0);
+		texture->markRenderTarget();
+		return texture;
 	}
 
 	void CollectCleanup()

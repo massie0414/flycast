@@ -20,6 +20,7 @@
 #include "mainui.h"
 #include "hw/pvr/Renderer_if.h"
 #include "gui.h"
+#include "settings.h"
 #include "oslib/oslib.h"
 #include "wsi/context.h"
 #include "cfg/option.h"
@@ -27,6 +28,7 @@
 #include "imgui_driver.h"
 #include "profiler/fc_profiler.h"
 #include "oslib/i18n.h"
+#include "rend/texture_preview.h"
 
 #include <chrono>
 #include <thread>
@@ -41,6 +43,7 @@ bool mainui_rend_frame()
 
 	os_DoEvents();
 	os_UpdateInputState();
+	texturePreview::setEnabled(game_started && config::ShowTextureViewer);
 
 	if (gui_is_open())
 	{
@@ -90,6 +93,7 @@ void mainui_init()
 
 void mainui_term()
 {
+	texturePreview::setEnabled(false);
 	rend_term_renderer();
 }
 

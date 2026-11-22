@@ -167,7 +167,7 @@ static void emuEventCallback(Event event, void *)
 	case Event::Resume:
 		gameRunning = true;
 		captureMouse(mouseCaptured);
-		if (window_fullscreen && !mouseCaptured)
+		if (window_fullscreen && !mouseCaptured && !config::ShowTextureViewer)
 			SDL_ShowCursor(SDL_DISABLE);
 		resumeHaptic();
 		break;
@@ -355,6 +355,15 @@ bool sdl_queue_open_file(const char *path)
 void input_sdl_handle()
 {
 	SDLGamepad::UpdateRumble();
+	// Keep the floating viewer usable in fullscreen, including after closing it.
+	static bool viewerCursor = false;
+	const bool showViewerCursor = gameRunning && config::ShowTextureViewer;
+	if (showViewerCursor != viewerCursor)
+	{
+		viewerCursor = showViewerCursor;
+		if (window_fullscreen && gameRunning && !mouseCaptured)
+			SDL_ShowCursor(viewerCursor ? SDL_ENABLE : SDL_DISABLE);
+	}
 
 	SDL_Event event;
 	while (SDL_PollEvent(&event))
@@ -390,7 +399,7 @@ void input_sdl_handle()
 						else
 						{
 							SDL_SetWindowFullscreen(window, SDL_WINDOW_FULLSCREEN_DESKTOP);
-							if (gameRunning)
+							if (gameRunning && !config::ShowTextureViewer)
 								SDL_ShowCursor(SDL_DISABLE);
 						}
 						window_fullscreen = !window_fullscreen;
@@ -461,7 +470,7 @@ void input_sdl_handle()
 				}
 				else if (event.window.event == SDL_WINDOWEVENT_FOCUS_GAINED)
 				{
-					if (window_fullscreen && gameRunning)
+					if (window_fullscreen && gameRunning && !config::ShowTextureViewer)
 						SDL_ShowCursor(SDL_DISABLE);
 				}
 				else if (event.window.event == SDL_WINDOWEVENT_FOCUS_LOST)

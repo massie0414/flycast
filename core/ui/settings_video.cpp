@@ -219,6 +219,8 @@ void gui_settings_video()
     	ImGui::Unindent();
 #endif
     	OptionCheckbox(T("Show VMU In-game"), config::FloatVMUs, T("Show the VMU LCD screens while in-game"));
+		OptionCheckbox(T("Show Texture Viewer"), config::ShowTextureViewer,
+				T("Show loaded game textures in a floating panel. Collects previews only while enabled."));
     	OptionCheckbox(T("Full Framebuffer Emulation"), config::EmulateFramebuffer,
     			T("Fully accurate VRAM framebuffer emulation. Helps games that directly access the framebuffer for special effects. "
     			"Very slow and incompatible with upscaling and wide screen."));

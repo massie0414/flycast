@@ -2964,3 +2964,25 @@ msgstr "共有"
 msgid "Not supported on Switch"
 msgstr "Switchではサポートされていません"
 
+msgid "Texture Viewer"
+msgstr "テクスチャビューアー"
+
+msgid "Textures"
+msgstr "テクスチャ"
+
+msgid "Show Texture Viewer"
+msgstr "テクスチャビューアーを表示"
+
+msgid "Show loaded game textures in a floating panel. Collects previews only while enabled."
+msgstr "読み込み済みのゲーム内テクスチャをパネルに表示します。有効な間だけプレビューを収集します。"
+
+#, c-format
+msgid "Loaded textures: %d (up to %d)"
+msgstr "読み込み済みテクスチャ: %d（最大%d）"
+
+msgid "No textures to display. Resume the game to load textures, or clear the filter."
+msgstr "表示するテクスチャがありません。ゲームを再開してテクスチャを読み込むか、フィルターを解除してください。"
+
+msgid "Custom"
+msgstr "カスタム"
+

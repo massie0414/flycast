@@ -3057,3 +3057,32 @@ msgstr ""
 #: shell/switch/switch_main.cpp:86
 msgid "Not supported on Switch"
 msgstr ""
+
+#: core/ui/gui_texture_viewer.cpp
+msgid "Texture Viewer"
+msgstr ""
+
+#: core/ui/gui.cpp
+msgid "Textures"
+msgstr ""
+
+#: core/ui/gui.cpp core/ui/settings_video.cpp
+msgid "Show Texture Viewer"
+msgstr ""
+
+#: core/ui/settings_video.cpp
+msgid "Show loaded game textures in a floating panel. Collects previews only while enabled."
+msgstr ""
+
+#: core/ui/gui_texture_viewer.cpp
+#, c-format
+msgid "Loaded textures: %d (up to %d)"
+msgstr ""
+
+#: core/ui/gui_texture_viewer.cpp
+msgid "No textures to display. Resume the game to load textures, or clear the filter."
+msgstr ""
+
+#: core/ui/gui_texture_viewer.cpp
+msgid "Custom"
+msgstr ""

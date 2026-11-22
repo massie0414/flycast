@@ -436,6 +436,7 @@ extern Option<bool> UseMipmaps;
 extern Option<bool> Widescreen;
 extern Option<bool> SuperWidescreen;
 extern Option<bool> ShowFPS;
+extern Option<bool> ShowTextureViewer;
 extern Option<bool> RenderToTextureBuffer;
 extern Option<bool> TranslucentPolygonDepthMask;
 extern Option<bool> ModifierVolumes;

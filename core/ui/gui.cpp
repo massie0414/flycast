@@ -633,6 +633,9 @@ static void gui_display_commands()
 		if (IconButton(ICON_FA_GEAR, T("Settings"), ScaledVec2(buttonWidth, 50)).realize())
 			gui_setState(GuiState::Settings);
 
+		// Texture viewer
+		OptionCheckbox(T("Textures"), config::ShowTextureViewer);
+
 		// Exit
 		if (IconButton(ICON_FA_POWER_OFF, commandLineStart ?  T("Exit") : T("Close Game"), ScaledVec2(buttonWidth, 50)).realize())
 			gui_stop_game();
@@ -1398,6 +1401,7 @@ void gui_display_ui()
 		die("Unknown UI state");
 		break;
 	}
+	gui_texture_viewer();
 	error_popup();
     ImGui::Render();
 	gui_endFrame(gui_open);
@@ -1472,6 +1476,7 @@ void gui_draw_osd()
 	if (!settings.raHardcoreMode)
 		lua::overlay();
 	vgamepad::draw();
+	gui_texture_viewer();
     ImGui::Render();
 	uiThreadRunner.execTasks();
 }

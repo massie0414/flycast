@@ -15,6 +15,7 @@
     along with Flycast.  If not, see <https://www.gnu.org/licenses/>.
 */
 #include "TexCache.h"
+#include "texture_preview.h"
 #include "xbrz/xbrz.h"
 #include "hw/pvr/pvr_mem.h"
 #include "hw/mem/addrspace.h"
@@ -229,6 +230,11 @@ void BaseTextureCacheData::PrintTextureName()
 //true if : dirty or paletted texture and hashes don't match
 bool BaseTextureCacheData::NeedsUpdate() {
 	bool rc = dirty != 0;
+	const u64 generation = texturePreview::generation();
+	if (generation != 0 && previewGeneration != generation && !renderTarget)
+		rc = true;
+	if (IsPaletted() && gpuPalette != IsGpuHandledPaletted(tsp, tcw, area))
+		rc = true;
 	if (tex_type != TextureType::_8)
 	{
 		if (tcw.PixelFmt == PixelPal4 && palette_hash != pal_hash_16[tcw.PalSelect])
@@ -291,8 +297,20 @@ bool BaseTextureCacheData::Delete()
 
 	free(custom_image_data);
 	custom_image_data = nullptr;
+	texturePreview::remove(this);
 
 	return true;
+}
+
+BaseTextureCacheData::~BaseTextureCacheData() {
+	texturePreview::remove(this);
+}
+
+void BaseTextureCacheData::markRenderTarget()
+{
+	// Its contents live on the GPU; decoding VRAM would overwrite a valid RTT.
+	renderTarget = true;
+	texturePreview::remove(this);
 }
 
 BaseTextureCacheData::BaseTextureCacheData(TSP tsp, TCW tcw, int area)
@@ -437,6 +455,7 @@ void BaseTextureCacheData::ComputeHash()
 
 bool BaseTextureCacheData::Update()
 {
+	renderTarget = false;
 	//texture state tracking stuff
 	Updates++;
 	dirty = 0;
@@ -510,7 +529,8 @@ bool BaseTextureCacheData::Update()
 	{
 		u32 oldHash = texture_hash;
 		ComputeHash();
-		if (Updates > 1 && oldHash == texture_hash)
+		if (Updates > 1 && oldHash == texture_hash
+				&& (texturePreview::generation() == 0 || previewGeneration == texturePreview::generation()))
 		{
 			// Texture hasn't changed so skip the update.
 			if (is_custom_replaced)
@@ -683,6 +703,9 @@ bool BaseTextureCacheData::Update()
 	protectVRam();
 
 	UploadToGPU(upscaled_w, upscaled_h, (const u8 *)temp_tex_buffer, IsMipmapped(), mipmapped);
+	texturePreview::capture(*this, upscaled_w, upscaled_h, (const u8 *)temp_tex_buffer,
+			mipmapped, heightLimit * upscaled_h / height);
+	previewGeneration = texturePreview::generation();
 	if (config::DumpTextures)
 	{
 		ComputeHash();
@@ -704,6 +727,7 @@ void BaseTextureCacheData::CheckCustomTexture()
 		gpuPalette = false;
 		is_custom_replaced = true;
 		UploadToGPU(custom_width, custom_height, custom_image_data, IsMipmapped(), false);
+		texturePreview::capture(*this, custom_width, custom_height, custom_image_data, false, custom_height);
 		free(custom_image_data);
 		custom_image_data = nullptr;
 	}

@@ -9,6 +9,8 @@ target_sources(${PROJECT_NAME} PRIVATE
         TexCache.h
         texconv.cpp
         texconv.h
+        texture_preview.cpp
+        texture_preview.h
         transform_matrix.cpp
         transform_matrix.h
         norend/norend.cpp)
