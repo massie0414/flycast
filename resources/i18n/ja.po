@@ -3084,6 +3084,24 @@ msgstr "推定使用量が設定容量に達しています。"
 msgid "Usage and remaining space are estimates."
 msgstr "使用量・残り容量は推定値です。"
 
+msgid "Polygon Viewer"
+msgstr "ポリゴンビューアー"
+
+msgid "Show Polygon Viewer"
+msgstr "ポリゴンビューアーを表示"
+
+msgid "Display polygon edges as green lines in a separate window. Collects geometry only while enabled."
+msgstr "ポリゴンの輪郭を緑の線で別ウィンドウに表示します。有効な間だけ形状データを取得します。"
+
+msgid "Green wireframe includes hidden edges and sprites. Background and shadow volumes are excluded."
+msgstr "緑の線で隠れた辺やスプライトも表示します。背景面と影用ボリュームは除外します。"
+
+msgid "No polygon edges to display. Resume the game to update the view."
+msgstr "表示できるポリゴンの辺がありません。ゲームを再開すると表示を更新します。"
+
+msgid "Display limit reached; showing the first 100,000 triangles."
+msgstr "表示上限に達したため、最初の100,000個の三角形を表示しています。"
+
 msgid "Capacity comes from the game's TA settings. Usage and remaining space are estimates before tile clipping; OPBs and CPU-written data are not included. Actual hardware usage may differ."
 msgstr "容量はゲームのTA設定から取得します。使用量と残り容量はタイルクリッピング前の推定値です。OPBとCPUが直接書き込むデータは含まれず、実機の使用量とは差があります。"
 

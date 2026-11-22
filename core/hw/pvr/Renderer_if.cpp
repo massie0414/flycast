@@ -2,6 +2,7 @@
 #include "spg.h"
 #include "rend/texconv.h"
 #include "rend/transform_matrix.h"
+#include "rend/polygon_preview.h"
 #include "cfg/option.h"
 #include "emulator.h"
 #include "serialize.h"
@@ -41,6 +42,7 @@ static void setGeometryStats(const RenderGeometryStats& stats)
 
 void rend_clear_geometry_stats() {
 	setGeometryStats({});
+	polygonPreview::clear();
 }
 
 static cResetEvent renderEnd;
@@ -282,6 +284,7 @@ private:
 			RenderGeometryStats stats;
 			stats.valid = true;
 			setGeometryStats(stats);
+			polygonPreview::clear();
 		}
 
 #ifdef LIBRETRO

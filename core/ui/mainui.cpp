@@ -30,6 +30,8 @@
 #include "oslib/i18n.h"
 #include "rend/texture_preview.h"
 #include "texture_viewer_window.h"
+#include "polygon_viewer_window.h"
+#include "rend/polygon_preview.h"
 #include "vmu_window.h"
 #include "geometry_stats_window.h"
 
@@ -53,6 +55,9 @@ bool mainui_rend_frame()
 	if (!textureViewerWindow::update(game_started && config::ShowTextureViewer))
 		config::ShowTextureViewer = false;
 	texturePreview::setEnabled(game_started && config::ShowTextureViewer);
+	if (!polygonViewerWindow::update(game_started && config::ShowPolygonViewer))
+		config::ShowPolygonViewer = false;
+	polygonPreview::setEnabled(polygonViewerWindow::supported && game_started && config::ShowPolygonViewer);
 
 	if (gui_is_open())
 	{
@@ -103,6 +108,7 @@ void mainui_init()
 void mainui_term()
 {
 	texturePreview::setEnabled(false);
+	polygonPreview::setEnabled(false);
 	rend_term_renderer();
 }
 

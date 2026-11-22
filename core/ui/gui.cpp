@@ -54,6 +54,7 @@
 #include "oslib/i18n.h"
 #include "gui_font.h"
 #include "texture_viewer_window.h"
+#include "polygon_viewer_window.h"
 #include "vmu_window.h"
 #include "geometry_stats_window.h"
 using namespace i18n;
@@ -638,6 +639,8 @@ static void gui_display_commands()
 
 		// Texture viewer
 		OptionCheckbox(T("Textures"), config::ShowTextureViewer);
+		if (polygonViewerWindow::supported)
+			OptionCheckbox(T("Polygon Viewer"), config::ShowPolygonViewer);
 		OptionCheckbox(T("Geometry Statistics"), config::ShowGeometryStats);
 		if (vmuWindow::supported && settings.platform.isConsole())
 			OptionCheckbox(T("VMU Window"), config::ShowVmuWindow);
@@ -1626,6 +1629,7 @@ void gui_term()
 	geometryStatsWindow::term();
 	vmuWindow::term();
 	textureViewerWindow::term();
+	polygonViewerWindow::term();
 	if (inited)
 	{
 		inited = false;
