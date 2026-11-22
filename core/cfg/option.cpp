@@ -86,6 +86,11 @@ Option<bool> DumpReplacedTextures("rend.DumpReplacedTextures");
 Option<int> ScreenStretching("rend.ScreenStretching", 100);
 Option<bool> Fog("rend.Fog", true);
 Option<bool> FloatVMUs("rend.FloatVMUs");
+#if defined(_WIN32) && !defined(TARGET_UWP)
+Option<bool> ShowVmuWindow("rend.ShowVmuWindow", true);
+#else
+Option<bool> ShowVmuWindow("rend.ShowVmuWindow");
+#endif
 Option<bool> Rotate90("rend.Rotate90");
 Option<bool> PerStripSorting("rend.PerStripSorting");
 #ifdef __APPLE__

@@ -18,6 +18,7 @@
  */
 #include "settings.h"
 #include "gui.h"
+#include "vmu_window.h"
 #include "wsi/context.h"
 
 enum RenderAPI {
@@ -219,6 +220,9 @@ void gui_settings_video()
     	ImGui::Unindent();
 #endif
     	OptionCheckbox(T("Show VMU In-game"), config::FloatVMUs, T("Show the VMU LCD screens while in-game"));
+		if (vmuWindow::supported)
+			OptionCheckbox(T("Show VMU in Separate Window"), config::ShowVmuWindow,
+					T("Display VMU LCD screens in a resizable window. You can move it to another monitor."));
 		OptionCheckbox(T("Show Texture Viewer"), config::ShowTextureViewer,
 				T("Show loaded game textures in the texture viewer. Collects previews only while enabled."));
     	OptionCheckbox(T("Full Framebuffer Emulation"), config::EmulateFramebuffer,
