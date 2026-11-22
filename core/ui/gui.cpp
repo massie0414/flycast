@@ -53,6 +53,7 @@
 #include "settings.h"
 #include "oslib/i18n.h"
 #include "gui_font.h"
+#include "texture_viewer_window.h"
 using namespace i18n;
 
 #ifdef _WIN32
@@ -1532,6 +1533,7 @@ void gui_cancel_load() {
 
 void gui_term()
 {
+	textureViewerWindow::term();
 	if (inited)
 	{
 		inited = false;

@@ -87,13 +87,22 @@ and **C++ CMake tools for Windows**. Visual Studio 2026 requires
 
 For Visual Studio 2026, the generated solution is `build\vs2026\flycast.slnx`
 (or `flycast.sln`, depending on the CMake version).
-Open it, select **Release | x64** (or **Debug | x64**), and build the solution.
+This is the single Windows workspace for all Flycast features, including the
+texture viewer. Reuse this directory instead of creating a solution per feature.
+The script regenerates this solution and builds the latest **Release | x64**
+executable before opening the IDE. A moved checkout's CMake cache is refreshed
+in the same directory. Select **Release | x64** (or **Debug | x64**) in the IDE.
 The executable is written to `build\vs2026\Release\flycast.exe` (or `Debug`).
 Direct3D 9 is disabled to avoid requiring the legacy DirectX SDK; Direct3D 11,
 OpenGL, and Vulkan remain enabled.
 
-To generate without opening the IDE, run
+To update and build without opening the IDE, run
 `shell\windows\generate_vs_project.bat --no-open`.
+To build the current sources and then launch Flycast, run
+`shell\windows\generate_vs_project.bat --run`. If configuration or compilation
+fails, it stops without launching an older executable. Use this entry point
+when you want to ensure the running application includes the latest edits.
+Configuration and save data remain beside the executable in `Release`.
 Alternatively, from a Developer PowerShell with CMake on `PATH`:
 
 ```powershell

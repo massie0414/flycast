@@ -2973,8 +2973,8 @@ msgstr "テクスチャ"
 msgid "Show Texture Viewer"
 msgstr "テクスチャビューアーを表示"
 
-msgid "Show loaded game textures in a floating panel. Collects previews only while enabled."
-msgstr "読み込み済みのゲーム内テクスチャをパネルに表示します。有効な間だけプレビューを収集します。"
+msgid "Show loaded game textures in the texture viewer. Collects previews only while enabled."
+msgstr "読み込み済みのゲーム内テクスチャをビューアーに表示します。有効な間だけプレビューを収集します。"
 
 #, c-format
 msgid "Loaded textures: %d (up to %d)"

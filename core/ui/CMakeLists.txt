@@ -34,6 +34,11 @@ if(NOT LIBRETRO)
             boxart/scraper.cpp
             boxart/scraper.h)
 
+    if(WIN32 AND NOT WINDOWS_STORE)
+        target_sources(${PROJECT_NAME} PRIVATE texture_viewer_window.cpp texture_viewer_window.h)
+        target_link_libraries(${PROJECT_NAME} PRIVATE gdi32 user32)
+    endif()
+
     if(USE_DISCORD)
         target_sources(${PROJECT_NAME} PRIVATE discord.cpp)
     endif()

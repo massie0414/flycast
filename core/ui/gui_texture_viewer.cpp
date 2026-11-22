@@ -1,4 +1,5 @@
 #include "gui.h"
+#include "texture_viewer_window.h"
 #include "gui_util.h"
 #include "settings.h"
 #include "imgui_driver.h"
@@ -11,6 +12,8 @@ using namespace i18n;
 
 void gui_texture_viewer()
 {
+	if (textureViewerWindow::detached)
+		return;
 	constexpr int pageSize = 24;
 	static std::array<u64, pageSize> revisions{};
 	static ImGuiTextFilter filter;

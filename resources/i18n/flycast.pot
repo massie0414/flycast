@@ -3071,7 +3071,7 @@ msgid "Show Texture Viewer"
 msgstr ""
 
 #: core/ui/settings_video.cpp
-msgid "Show loaded game textures in a floating panel. Collects previews only while enabled."
+msgid "Show loaded game textures in the texture viewer. Collects previews only while enabled."
 msgstr ""
 
 #: core/ui/gui_texture_viewer.cpp

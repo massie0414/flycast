@@ -24,6 +24,7 @@
 #include <devpkey.h>
 #include "hw/maple/maple_devs.h"
 #include "nowide/stackstring.hpp"
+#include "ui/texture_viewer_window.h"
 
 #include <algorithm>
 #include <cstring>
@@ -276,6 +277,10 @@ static LRESULT CALLBACK rawWindowProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM
 
 			u16 scancode = ri.data.keyboard.MakeCode;
 			bool pressed = (ri.data.keyboard.Flags & RI_KEY_BREAK) == 0;
+			// A separate viewer is still part of the foreground application.
+			// Accept releases to avoid leaving a previously held game key stuck.
+			if (pressed && textureViewerWindow::hasFocus())
+				break;
 			u8 keycode = 0xff;
 			if ((ri.data.keyboard.Flags & RI_KEY_E0) != 0)
 			{
@@ -299,6 +304,13 @@ static LRESULT CALLBACK rawWindowProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM
 
 	case RIM_TYPEMOUSE:
 		{
+			if (textureViewerWindow::hasFocus())
+			{
+				ri.data.mouse.usFlags = MOUSE_MOVE_RELATIVE;
+				ri.data.mouse.lLastX = ri.data.mouse.lLastY = 0;
+				ri.data.mouse.usButtonFlags &= RI_MOUSE_LEFT_BUTTON_UP | RI_MOUSE_RIGHT_BUTTON_UP
+						| RI_MOUSE_MIDDLE_BUTTON_UP | RI_MOUSE_BUTTON_4_UP | RI_MOUSE_BUTTON_5_UP;
+			}
 			auto it = mice.find(ri.header.hDevice);
 			if (it != mice.end())
 				it->second->updateState(&ri.data.mouse);

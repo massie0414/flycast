@@ -16,6 +16,7 @@
 #include "sdl_keyboard_mac.h"
 #include "wsi/context.h"
 #include "ui/gui.h"
+#include "ui/texture_viewer_window.h"
 #include "emulator.h"
 #include "stdclass.h"
 #include "imgui.h"
@@ -51,6 +52,11 @@ static bool window_fullscreen;
 static bool window_maximized;
 static SDL_Rect windowPos { SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, WINDOW_WIDTH, WINDOW_HEIGHT };
 static bool gameRunning;
+
+static bool textureViewerNeedsCursor()
+{
+	return !textureViewerWindow::detached && config::ShowTextureViewer;
+}
 static bool mouseCaptured;
 static std::string clipboardText;
 static std::string barcode;
@@ -167,7 +173,7 @@ static void emuEventCallback(Event event, void *)
 	case Event::Resume:
 		gameRunning = true;
 		captureMouse(mouseCaptured);
-		if (window_fullscreen && !mouseCaptured && !config::ShowTextureViewer)
+		if (window_fullscreen && !mouseCaptured && !textureViewerNeedsCursor())
 			SDL_ShowCursor(SDL_DISABLE);
 		resumeHaptic();
 		break;
@@ -357,7 +363,7 @@ void input_sdl_handle()
 	SDLGamepad::UpdateRumble();
 	// Keep the floating viewer usable in fullscreen, including after closing it.
 	static bool viewerCursor = false;
-	const bool showViewerCursor = gameRunning && config::ShowTextureViewer;
+	const bool showViewerCursor = gameRunning && textureViewerNeedsCursor();
 	if (showViewerCursor != viewerCursor)
 	{
 		viewerCursor = showViewerCursor;
@@ -399,7 +405,7 @@ void input_sdl_handle()
 						else
 						{
 							SDL_SetWindowFullscreen(window, SDL_WINDOW_FULLSCREEN_DESKTOP);
-							if (gameRunning && !config::ShowTextureViewer)
+							if (gameRunning && !textureViewerNeedsCursor())
 								SDL_ShowCursor(SDL_DISABLE);
 						}
 						window_fullscreen = !window_fullscreen;
@@ -470,7 +476,7 @@ void input_sdl_handle()
 				}
 				else if (event.window.event == SDL_WINDOWEVENT_FOCUS_GAINED)
 				{
-					if (window_fullscreen && gameRunning && !config::ShowTextureViewer)
+					if (window_fullscreen && gameRunning && !textureViewerNeedsCursor())
 						SDL_ShowCursor(SDL_DISABLE);
 				}
 				else if (event.window.event == SDL_WINDOWEVENT_FOCUS_LOST)

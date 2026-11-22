@@ -29,6 +29,7 @@
 #include "profiler/fc_profiler.h"
 #include "oslib/i18n.h"
 #include "rend/texture_preview.h"
+#include "texture_viewer_window.h"
 
 #include <chrono>
 #include <thread>
@@ -43,6 +44,8 @@ bool mainui_rend_frame()
 
 	os_DoEvents();
 	os_UpdateInputState();
+	if (!textureViewerWindow::update(game_started && config::ShowTextureViewer))
+		config::ShowTextureViewer = false;
 	texturePreview::setEnabled(game_started && config::ShowTextureViewer);
 
 	if (gui_is_open())

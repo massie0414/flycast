@@ -10,7 +10,24 @@ set "VS_INSTALL="
 set "DEVENV_EXE="
 set "GIT_EXE="
 set "NO_OPEN="
-if /i "%~1"=="--no-open" set "NO_OPEN=1"
+set "RUN_APP="
+set "FRESH_CACHE="
+
+:parse_args
+if "%~1"=="" goto :args_done
+if /i "%~1"=="--no-open" (
+    set "NO_OPEN=1"
+) else if /i "%~1"=="--run" (
+    set "RUN_APP=1"
+    set "NO_OPEN=1"
+) else (
+    echo Unknown option: %~1
+    echo Usage: generate_vs_project.bat [--no-open ^| --run]
+    exit /b 1
+)
+shift
+goto :parse_args
+:args_done
 
 call :find_vs
 if not defined VS_INSTALL (
@@ -69,20 +86,46 @@ if not exist "core\deps\glslang\CMakeLists.txt" (
 )
 
 echo.
-echo Generating Visual Studio %VS_YEAR% x64 project...
+rem CMake caches contain absolute paths. Refresh in place after moving/copying
+rem the checkout instead of generating a second solution elsewhere.
+if exist "%BUILD_DIR%\CMakeCache.txt" (
+    for /f "tokens=1,* delims==" %%a in ('findstr /b "CMAKE_HOME_DIRECTORY:INTERNAL=" "%BUILD_DIR%\CMakeCache.txt"') do (
+        set "CACHE_SOURCE=%%b"
+        set "CACHE_SOURCE=!CACHE_SOURCE:/=\!"
+        if /i not "!CACHE_SOURCE!"=="%ROOT%" (
+            echo Source directory changed. Refreshing the existing CMake cache.
+            set "FRESH_CACHE=--fresh"
+        )
+    )
+)
+
+echo Updating Visual Studio %VS_YEAR% x64 project in %BUILD_DIR%...
 if "%VS_YEAR%"=="2026" (
     "%CMAKE_EXE%" --help | findstr /c:"Visual Studio 18 2026" >nul
     if errorlevel 1 (
         echo CMake 4.2 or newer is required. Update C++ CMake tools for Windows in Visual Studio Installer.
         goto :fail
     )
-    "%CMAKE_EXE%" --preset vs2026-x64
+    "%CMAKE_EXE%" --preset vs2026-x64 %FRESH_CACHE%
 ) else (
-    "%CMAKE_EXE%" -B "%BUILD_DIR%" -G "Visual Studio 17 2022" -A x64 -DUSE_DX9=OFF
+    "%CMAKE_EXE%" -B "%BUILD_DIR%" -G "Visual Studio 17 2022" -A x64 -DUSE_DX9=OFF -DENABLE_CTEST=OFF -DBUILD_TESTING=OFF %FRESH_CACHE%
 )
 if errorlevel 1 goto :fail
 
-call :say_success "Visual Studio project generated."
+echo.
+echo Building the latest Release executable...
+if "%VS_YEAR%"=="2026" (
+    "%CMAKE_EXE%" --build --preset vs2026-release
+) else (
+    "%CMAKE_EXE%" --build "%BUILD_DIR%" --config Release --target flycast --parallel 1 -- /nodeReuse:false
+)
+if errorlevel 1 goto :fail
+call :say_success "Visual Studio project and Release executable updated."
+
+if defined RUN_APP (
+    start "" "%ROOT%\%BUILD_DIR%\Release\flycast.exe"
+    goto :done
+)
 
 if exist "%BUILD_DIR%\flycast.slnx" (
     set "PROJECT_FILE=%CD%\%BUILD_DIR%\flycast.slnx"
@@ -223,7 +266,7 @@ exit /b 0
 
 :fail
 echo.
-echo Project generation failed.
+echo Project update or build failed. The executable has not been launched.
 if not defined NO_OPEN pause
 exit /b 1
 
