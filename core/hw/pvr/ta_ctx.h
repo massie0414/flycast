@@ -1,6 +1,7 @@
 #pragma once
 #include "types.h"
 #include "ta_structs.h"
+#include "ta_buffer.h"
 #include "pvr_regs.h"
 #include "oslib/oslib.h"
 #include <glm/glm.hpp>
@@ -35,6 +36,7 @@ struct PolyParam
 {
 	u32 first;		//entry index , holds vertex/pos data
 	u32 count;
+	u32 taStripTriangles;	// Effective TA strip partition size, for diagnostics.
 
 	BaseTextureCacheData *texture;
 
@@ -60,6 +62,7 @@ struct PolyParam
 	{
 		first = 0;
 		count = 0;
+		taStripTriangles = 1;
 		texture = nullptr;
 		tsp.full = 0;
 		tcw.full = 0;
@@ -242,6 +245,41 @@ struct Rect
 	}
 };
 
+struct GeometryCounts
+{
+	u32 vertices = 0;
+	u32 triangles = 0;
+	u64 parameterBytes = 0;
+
+	GeometryCounts& operator+=(const GeometryCounts& other)
+	{
+		vertices += other.vertices;
+		triangles += other.triangles;
+		parameterBytes += other.parameterBytes;
+		return *this;
+	}
+};
+
+struct RenderGeometryStats
+{
+	GeometryCounts opaque;
+	GeometryCounts punchThrough;
+	GeometryCounts translucent;
+	GeometryCounts modifierVolumes;
+	TaBufferStats taBuffers;
+	u32 renderPasses = 0;
+	bool valid = false;
+
+	GeometryCounts total() const
+	{
+		GeometryCounts result = opaque;
+		result += punchThrough;
+		result += translucent;
+		result += modifierVolumes;
+		return result;
+	}
+};
+
 struct rend_context
 {
 	f32 fZ_max;
@@ -274,12 +312,14 @@ struct rend_context
 	std::vector<PolyParam> global_param_tr;
 	std::vector<RenderPass> render_passes;
 	std::vector<SortedTriangle> sortedTriangles;
+	RenderGeometryStats geometryStats;
 
 	std::vector<N2Matrix> matrices;
 	std::vector<N2LightModel> lightModels;
 
 	void Clear()
 	{
+		geometryStats = {};
 		idx.clear();
 		global_param_op.clear();
 		global_param_pt.clear();
@@ -301,6 +341,28 @@ struct rend_context
 		clearFramebuffer = false;
 	}
 
+	// Call before index generation: it merges strips and inserts degenerate
+	// indices/restart markers, so PolyParam::count no longer counts vertices.
+	void countGeometry(const RenderPass& pass, const RenderPass& previousPass)
+	{
+		auto countStrips = [](const std::vector<PolyParam>& polys, u32 first, u32 end) {
+			GeometryCounts counts;
+			for (u32 i = first; i < end; i++)
+			{
+				counts.vertices += polys[i].count;
+				counts.parameterBytes += estimateTaParameterBytes(polys[i].pcw, polys[i].count, polys[i].taStripTriangles);
+				if (polys[i].count >= 3)
+					counts.triangles += polys[i].count - 2;
+			}
+			return counts;
+		};
+		// Entry zero is Flycast's generated background quad, not a TA strip.
+		geometryStats.opaque += countStrips(global_param_op, std::max(1u, previousPass.op_count), pass.op_count);
+		geometryStats.punchThrough += countStrips(global_param_pt, previousPass.pt_count, pass.pt_count);
+		geometryStats.translucent += countStrips(global_param_tr, previousPass.tr_count, pass.tr_count);
+		geometryStats.renderPasses++;
+	}
+
 	void newRenderPass();
 };
 
@@ -314,6 +376,7 @@ struct TA_context
 
 	tad_context tad;
 	rend_context rend;
+	TaBufferAllocation taBufferAllocation;
 
 	TA_context *nextContext = nullptr;
 	/*
@@ -366,6 +429,7 @@ struct TA_context
 		verify(tad.End() - tad.thd_root <= (ptrdiff_t)TA_DATA_SIZE);
 		tad.Clear();
 		nextContext = nullptr;
+		taBufferAllocation = {};
 		rend.Clear();
 	}
 

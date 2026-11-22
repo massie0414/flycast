@@ -131,6 +131,7 @@ protected:
 		memset(FaceOffsColor1, 0xff, sizeof(FaceOffsColor1));
 		SFaceBaseColor = 0;
 		SFaceOffsColor = 0;
+		stripTriangles = 1;
 		lmr = nullptr;
 		CurrentList = ListType_None;
 		CurrentPP = nullptr;
@@ -142,6 +143,16 @@ protected:
 
 	//cache state vars
 	static u32 tileclip_val;
+	inline static u32 stripTriangles = 1;
+
+	static void updateStripLength(PCW pcw)
+	{
+		if (pcw.Group_En)
+		{
+			constexpr u32 lengths[] = {1, 2, 4, 6};
+			stripTriangles = lengths[pcw.Strip_Len];
+		}
+	}
 
 	//TA state vars
 	static u8 FaceBaseColor[4];
@@ -420,6 +431,7 @@ strip_end:
 				//PolyType :32B/64B
 			case ParamType_Polygon_or_Modifier_Volume:
 				{
+					updateStripLength(data->pcw);
 					setClipMode(data->pcw.User_Clip);
 					//Yep , C++ IS lame & limited
 					#include "ta_const_df.h"
@@ -472,6 +484,7 @@ strip_end:
 				//32B
 				//Sets Sprite info , and switches to ta_sprite_data function
 			case ParamType_Sprite:
+				updateStripLength(data->pcw);
 				setClipMode(data->pcw.User_Clip);
 				if (CurrentList != ListType_None || startList(data->pcw.ListType))
 				{
@@ -547,6 +560,7 @@ private:
 		d_pp->tsp = pp->tsp;
 		d_pp->tcw = pp->tcw;
 		d_pp->pcw = pp->pcw;
+		d_pp->taStripTriangles = stripTriangles;
 		d_pp->tileclip = tileclip_val;
 
 		if (d_pp->pcw.Texture && fetchTextures)
@@ -1168,6 +1182,7 @@ static void getRegionSettings(int passNumber, RenderPass& pass);
 
 static void parseRenderPass(RenderPass& pass, const RenderPass& previousPass, rend_context& ctx, bool primRestart)
 {
+	ctx.countGeometry(pass, previousPass);
 	const bool perPixel = config::RendererType == RenderType::OpenGL_OIT
 			|| config::RendererType == RenderType::DirectX11_OIT
 			|| config::RendererType == RenderType::Vulkan_OIT;
@@ -1235,6 +1250,8 @@ static void ta_parse_vdrc(TA_context* ctx, bool primRestart)
 
 	while (childCtx != nullptr)
 	{
+		const u64 previousBytes = vd_rc.geometryStats.total().parameterBytes;
+		const size_t previousModifiers = vd_rc.modtrig.size();
 		Ta_Dma* ta_data = (Ta_Dma *)childCtx->getTADataBegin();
 		Ta_Dma* ta_data_end = (Ta_Dma *)childCtx->getTADataEnd();
 
@@ -1242,6 +1259,8 @@ static void ta_parse_vdrc(TA_context* ctx, bool primRestart)
 			try {
 				ta_data = BaseTAParser::TaCmd(ta_data, ta_data_end);
 			} catch (const TAParserException& e) {
+				// An interrupted parse cannot account for the remaining TA data.
+				vd_rc.geometryStats.taBuffers.complete = false;
 				break;
 			}
 
@@ -1273,6 +1292,11 @@ static void ta_parse_vdrc(TA_context* ctx, bool primRestart)
 			parseRenderPass(render_pass, previousPass, vd_rc, primRestart);
 			previousPass = render_pass;
 		}
+		// Before tile rejection: keep every submitted object in the estimate.
+		// Allow 3 header words + 3 XYZ vertices per modifier triangle.
+		const u64 modifierBytes = (vd_rc.modtrig.size() - previousModifiers) * 48;
+		vd_rc.geometryStats.taBuffers.add(childCtx->taBufferAllocation,
+				vd_rc.geometryStats.total().parameterBytes - previousBytes + modifierBytes);
 		childCtx = childCtx->nextContext;
 		pass++;
 	}
@@ -1324,10 +1348,17 @@ static void ta_parse_naomi2(TA_context* ctx, bool primRestart)
 
 void ta_parse(TA_context *ctx, bool primRestart)
 {
+	ctx->rend.geometryStats = {};
 	if (settings.platform.isNaomi2())
 		ta_parse_naomi2(ctx, primRestart);
 	else
 		ta_parse_vdrc(ctx, primRestart);
+	// Shared opaque/translucent modifier lists can reference the same geometry.
+	// Count the submitted triangles once, regardless of how often they are drawn.
+	auto& stats = ctx->rend.geometryStats;
+	stats.modifierVolumes.triangles = (u32)ctx->rend.modtrig.size();
+	stats.modifierVolumes.vertices = stats.modifierVolumes.triangles * 3;
+	stats.valid = true;
 }
 
 //

@@ -16,6 +16,8 @@ bool rend_single_frame(const bool& enabled);
 void rend_swap_frame(u32 fb_r_sof1);
 void rend_set_fb_write_addr(u32 fb_w_sof1);
 void rend_reset();
+RenderGeometryStats rend_get_geometry_stats();
+void rend_clear_geometry_stats();
 void rend_disable_rollback();
 void rend_start_rollback();
 void rend_allow_rollback();
@@ -87,6 +89,7 @@ protected:
 private:
 	static void onEvent(Event event, void *arg)
 	{
+		rend_clear_geometry_stats();
 		Renderer *renderer = static_cast<Renderer*>(arg);
 		renderer->resetTextureCache = true;
 		renderer->updatePalette = true;

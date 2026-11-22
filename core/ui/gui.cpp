@@ -637,6 +637,7 @@ static void gui_display_commands()
 
 		// Texture viewer
 		OptionCheckbox(T("Textures"), config::ShowTextureViewer);
+		OptionCheckbox(T("Geometry Statistics"), config::ShowGeometryStats);
 		if (vmuWindow::supported && settings.platform.isConsole())
 			OptionCheckbox(T("VMU Window"), config::ShowVmuWindow);
 
@@ -1326,6 +1327,87 @@ static void gui_display_loadscreen()
     ImGui::End();
 }
 
+static void gui_geometry_stats()
+{
+	if (!game_started || !config::ShowGeometryStats
+			|| (gui_state != GuiState::Closed && gui_state != GuiState::Pause))
+		return;
+
+	const ImVec2 display = ImGui::GetIO().DisplaySize;
+	ImGui::SetNextWindowPos(ImVec2(insetLeft + uiScaled(12), insetTop + uiScaled(12)), ImGuiCond_FirstUseEver);
+	ImGui::SetNextWindowSize(ImVec2(std::min(uiScaled(380), display.x), 0), ImGuiCond_Always);
+	ImGui::SetNextWindowBgAlpha(0.85f);
+	bool open = true;
+	const std::string title = Ts("PowerVR2 Geometry Statistics") + "###GeometryStats";
+	if (ImGui::Begin(title.c_str(), &open, ImGuiWindowFlags_AlwaysAutoResize
+			| ImGuiWindowFlags_NoFocusOnAppearing | ImGuiWindowFlags_NoNav | ImGuiWindowFlags_NoSavedSettings))
+	{
+		const RenderGeometryStats stats = rend_get_geometry_stats();
+		if (!stats.valid)
+			ImGui::TextWrapped("%s", T("Waiting for a screen render..."));
+		else
+		{
+			const GeometryCounts total = stats.total();
+			ImGui::Text(T("Vertices: %u"), total.vertices);
+			ImGui::Text(T("Polygons (triangles): %u"), total.triangles);
+			ImGui::Separator();
+			ImGui::TextUnformatted(T("TA vertex buffer (estimated)"));
+			if (!stats.taBuffers.complete || stats.taBuffers.buffers.empty())
+				ImGui::TextWrapped("%s", T("Buffer usage unavailable for this render."));
+			else
+			{
+				for (size_t i = 0; i < stats.taBuffers.buffers.size(); i++)
+				{
+					const TaBufferUsage& buffer = stats.taBuffers.buffers[i];
+					if (stats.taBuffers.buffers.size() > 1)
+						ImGui::Text(T("Buffer %u"), (unsigned)i + 1);
+					ImGui::Text(T("Used: %.2f / %.2f KiB"), buffer.usedBytes / 1024.0, buffer.allocation.capacityBytes / 1024.0);
+					ImGui::Text(T("Remaining: %.2f KiB"), buffer.remainingBytes() / 1024.0);
+					const double fraction = buffer.fraction();
+					const ImVec4 color = fraction >= 1.0 ? ImVec4(0.9f, 0.25f, 0.2f, 1.f)
+							: fraction >= 0.8 ? ImVec4(0.95f, 0.7f, 0.15f, 1.f) : ImVec4(0.25f, 0.7f, 0.4f, 1.f);
+					ImguiStyleColor style(ImGuiCol_PlotHistogram, color);
+					const std::string percent = strprintf("%.1f%%", fraction * 100.0);
+					ImGui::ProgressBar((float)std::min(1.0, fraction), ImVec2(-1, 0), percent.c_str());
+					if (fraction >= 1.0)
+						ImGui::TextWrapped("%s", T("Estimated usage has reached the configured capacity."));
+				}
+			}
+			ShowHelpMarker(T("Capacity comes from the game's TA settings. Usage and remaining space are estimates before tile clipping; OPBs and CPU-written data are not included. Actual hardware usage may differ."));
+			ImGui::SameLine();
+			ImGui::TextUnformatted(T("Usage and remaining space are estimates."));
+			ImGui::Separator();
+			if (ImGui::BeginTable("GeometryCounts", 3, ImGuiTableFlags_SizingStretchProp))
+			{
+				ImGui::TableSetupColumn(T("List"));
+				ImGui::TableSetupColumn(T("Vertices"));
+				ImGui::TableSetupColumn(T("Triangles"));
+				ImGui::TableHeadersRow();
+				auto row = [](const char *label, const GeometryCounts& counts) {
+					ImGui::TableNextRow();
+					ImGui::TableNextColumn();
+					ImGui::TextUnformatted(label);
+					ImGui::TableNextColumn();
+					ImGui::Text("%u", counts.vertices);
+					ImGui::TableNextColumn();
+					ImGui::Text("%u", counts.triangles);
+				};
+				row(T("Opaque"), stats.opaque);
+				row(T("Punch-through"), stats.punchThrough);
+				row(T("Translucent"), stats.translucent);
+				row(T("Modifier volumes"), stats.modifierVolumes);
+				ImGui::EndTable();
+			}
+			ImGui::Separator();
+			ImGui::Text(T("Render passes: %u"), stats.renderPasses);
+			ImGui::TextWrapped("%s", T("Latest screen render, before culling. Background and render-to-texture excluded."));
+		}
+	}
+	ImGui::End();
+	if (!open)
+		config::ShowGeometryStats = false;
+}
+
 void gui_display_ui()
 {
 	FC_PROFILE_SCOPE;
@@ -1406,6 +1488,7 @@ void gui_display_ui()
 		break;
 	}
 	gui_texture_viewer();
+	gui_geometry_stats();
 	error_popup();
     ImGui::Render();
 	gui_endFrame(gui_open);
@@ -1481,6 +1564,7 @@ void gui_draw_osd()
 		lua::overlay();
 	vgamepad::draw();
 	gui_texture_viewer();
+	gui_geometry_stats();
     ImGui::Render();
 	uiThreadRunner.execTasks();
 }

@@ -392,6 +392,8 @@ void gui_settings_video()
     	ImGui::Columns(1, nullptr, false);
 
     	OptionCheckbox(T("Show FPS Counter"), config::ShowFPS, T("Show on-screen frame/sec counter"));
+		OptionCheckbox(T("Show Geometry Statistics"), config::ShowGeometryStats,
+				T("Show vertex and triangle counts for the latest screen render."));
     }
 #ifdef VIDEO_ROUTING
 	ImGui::Spacing();

@@ -505,11 +505,20 @@ static void markObjectListBlocks(int renderPass)
 
 void ta_vtx_ListInit(bool continuation)
 {
+	const TaBufferAllocation previousAllocation = ta_ctx != nullptr ? ta_ctx->taBufferAllocation : TaBufferAllocation{};
 	if (!continuation)
 		taRenderPass = 0;
 	else
 		taRenderPass++;
 	SetCurrentTARC(TA_OL_BASE);
+	// Capture on the emulation thread when this list is initialized, not on the
+	// render thread (the game may already have selected the next frame's buffer).
+	if (!continuation)
+		ta_ctx->taBufferAllocation = TaBufferAllocation::fromRegisters(TA_ISP_BASE, TA_ISP_LIMIT, VRAM_SIZE);
+	else if (previousAllocation.valid)
+		ta_ctx->taBufferAllocation = TaBufferAllocation::fromRegisters(previousAllocation.base, TA_ISP_LIMIT, VRAM_SIZE, true);
+	else
+		ta_ctx->taBufferAllocation = {};
 	ta_tad.ClearPartial();
 	markObjectListBlocks(taRenderPass);
 

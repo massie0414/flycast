@@ -3009,3 +3009,81 @@ msgstr "最大（表示開始後）: %.2f MiB | 残り（上限）: %.2f MiB"
 msgid "Framebuffers and other allocations are not counted. Remaining is not actual free VRAM."
 msgstr "描画バッファやゲーム側の確保領域は未計測です。残りは実際の空き容量とは異なります。"
 
+msgid "Geometry Statistics"
+msgstr "頂点・ポリゴン数"
+
+msgid "PowerVR2 Geometry Statistics"
+msgstr "PowerVR2 頂点・ポリゴン数"
+
+msgid "Show Geometry Statistics"
+msgstr "頂点・ポリゴン数を表示"
+
+msgid "Show vertex and triangle counts for the latest screen render."
+msgstr "最新の画面描画の頂点数・三角形数を表示します。"
+
+msgid "Waiting for a screen render..."
+msgstr "画面の描画を待っています..."
+
+#, c-format
+msgid "Vertices: %u"
+msgstr "頂点数: %u"
+
+#, c-format
+msgid "Polygons (triangles): %u"
+msgstr "ポリゴン数（三角形）: %u"
+
+msgid "List"
+msgstr "種類"
+
+msgid "Vertices"
+msgstr "頂点"
+
+msgid "Triangles"
+msgstr "三角形"
+
+msgid "Opaque"
+msgstr "不透明"
+
+msgid "Punch-through"
+msgstr "抜き色"
+
+msgid "Translucent"
+msgstr "半透明"
+
+msgid "Modifier volumes"
+msgstr "影用ボリューム"
+
+#, c-format
+msgid "Render passes: %u"
+msgstr "描画パス: %u"
+
+msgid "Latest screen render, before culling. Background and render-to-texture excluded."
+msgstr "最新の画面描画・カリング前の値です。背景面とテクスチャへの描画は除外します。"
+
+msgid "TA vertex buffer (estimated)"
+msgstr "TA頂点バッファ（推定）"
+
+msgid "Buffer usage unavailable for this render."
+msgstr "この描画のバッファ使用量は取得できません。"
+
+#, c-format
+msgid "Buffer %u"
+msgstr "バッファ %u"
+
+#, c-format
+msgid "Used: %.2f / %.2f KiB"
+msgstr "使用量: %.2f / %.2f KiB"
+
+#, c-format
+msgid "Remaining: %.2f KiB"
+msgstr "残り容量: %.2f KiB"
+
+msgid "Estimated usage has reached the configured capacity."
+msgstr "推定使用量が設定容量に達しています。"
+
+msgid "Usage and remaining space are estimates."
+msgstr "使用量・残り容量は推定値です。"
+
+msgid "Capacity comes from the game's TA settings. Usage and remaining space are estimates before tile clipping; OPBs and CPU-written data are not included. Actual hardware usage may differ."
+msgstr "容量はゲームのTA設定から取得します。使用量と残り容量はタイルクリッピング前の推定値です。OPBとCPUが直接書き込むデータは含まれず、実機の使用量とは差があります。"
+
