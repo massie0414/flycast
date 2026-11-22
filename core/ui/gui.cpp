@@ -54,6 +54,7 @@
 #include "oslib/i18n.h"
 #include "gui_font.h"
 #include "texture_viewer_window.h"
+#include "vmu_window.h"
 using namespace i18n;
 
 #ifdef _WIN32
@@ -636,6 +637,8 @@ static void gui_display_commands()
 
 		// Texture viewer
 		OptionCheckbox(T("Textures"), config::ShowTextureViewer);
+		if (vmuWindow::supported && settings.platform.isConsole())
+			OptionCheckbox(T("VMU Window"), config::ShowVmuWindow);
 
 		// Exit
 		if (IconButton(ICON_FA_POWER_OFF, commandLineStart ?  T("Exit") : T("Close Game"), ScaledVec2(buttonWidth, 50)).realize())
@@ -1533,6 +1536,7 @@ void gui_cancel_load() {
 
 void gui_term()
 {
+	vmuWindow::term();
 	textureViewerWindow::term();
 	if (inited)
 	{
@@ -1567,8 +1571,7 @@ void gui_refresh_files() {
 }
 
 void reset_vmus() {
-	for (u32 i = 0; i < std::size(vmu_lcd_status); i++)
-		vmu_lcd_status[i] = false;
+	resetVmuScreens();
 }
 
 void gui_error(const std::string& what) {

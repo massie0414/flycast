@@ -455,6 +455,9 @@ extern Option<bool> DumpReplacedTextures;
 extern Option<int> ScreenStretching;	// in percent. 150 means stretch from 4/3 to 6/3
 extern Option<bool> Fog;
 extern Option<bool> FloatVMUs;
+#ifndef LIBRETRO
+extern Option<bool> ShowVmuWindow;
+#endif
 extern Option<bool> Rotate90;
 extern Option<bool> PerStripSorting;
 extern Option<bool> DelayFrameSwapping;	// Delay swapping frame until FB_R_SOF matches FB_W_SOF

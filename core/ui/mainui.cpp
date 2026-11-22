@@ -30,6 +30,7 @@
 #include "oslib/i18n.h"
 #include "rend/texture_preview.h"
 #include "texture_viewer_window.h"
+#include "vmu_window.h"
 
 #include <chrono>
 #include <thread>
@@ -44,6 +45,8 @@ bool mainui_rend_frame()
 
 	os_DoEvents();
 	os_UpdateInputState();
+	if (!vmuWindow::update(game_started && settings.platform.isConsole() && config::ShowVmuWindow))
+		config::ShowVmuWindow = false;
 	if (!textureViewerWindow::update(game_started && config::ShowTextureViewer))
 		config::ShowTextureViewer = false;
 	texturePreview::setEnabled(game_started && config::ShowTextureViewer);
