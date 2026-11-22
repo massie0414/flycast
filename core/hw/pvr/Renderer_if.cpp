@@ -24,6 +24,25 @@ u32 FrameCount=1;
 
 Renderer* renderer;
 
+static std::mutex geometryStatsMutex;
+static RenderGeometryStats geometryStats;
+
+RenderGeometryStats rend_get_geometry_stats()
+{
+	const std::lock_guard<std::mutex> lock(geometryStatsMutex);
+	return geometryStats;
+}
+
+static void setGeometryStats(const RenderGeometryStats& stats)
+{
+	const std::lock_guard<std::mutex> lock(geometryStatsMutex);
+	geometryStats = stats;
+}
+
+void rend_clear_geometry_stats() {
+	setGeometryStats({});
+}
+
 static cResetEvent renderEnd;
 u32 fb_w_cur = 1;
 static cResetEvent vramRollback;
@@ -216,7 +235,10 @@ private:
 			FC_PROFILE_SCOPE_NAMED("Renderer::Process");
 			try {
 				renderer->Process(taContext);
+				if (!taContext->rend.isRTT)
+					setGeometryStats(taContext->rend.geometryStats);
 			} catch (...) {
+				rend_clear_geometry_stats();
 				renderEnd.Set();
 				rend_allow_rollback();
 				FinishRender(taContext);
@@ -233,6 +255,7 @@ private:
 			try {
 				renderer->Render();
 			} catch (...) {
+				rend_clear_geometry_stats();
 				if (!renderToScreen)
 					renderEnd.Set();
 				FinishRender(taContext);
@@ -252,6 +275,14 @@ private:
 	void renderFramebuffer(const FramebufferInfo& config)
 	{
 		FC_PROFILE_SCOPE;
+		// A directly written framebuffer has no TA geometry. Full framebuffer
+		// emulation instead presents the result of the preceding TA render.
+		if (!config::EmulateFramebuffer)
+		{
+			RenderGeometryStats stats;
+			stats.valid = true;
+			setGeometryStats(stats);
+		}
 
 #ifdef LIBRETRO
 		int w, h;
@@ -484,6 +515,7 @@ void rend_term_renderer()
 	// also leave the producer side wedged, which manifests as audio/video
 	// drift after a renderer switch.
 	rend_cancel_emu_wait();
+	rend_clear_geometry_stats();
 
 	if (renderer != nullptr)
 	{
@@ -495,6 +527,7 @@ void rend_term_renderer()
 
 void rend_reset()
 {
+	rend_clear_geometry_stats();
 	FinishRender(DequeueRender());
 	render_called = false;
 	pend_rend = false;
@@ -699,6 +732,10 @@ void rend_serialize(Serializer& ser)
 }
 void rend_deserialize(Deserializer& deser)
 {
+	// A manually loaded state has no corresponding geometry snapshot yet.
+	// Network rollbacks keep displaying the last presented frame until replay.
+	if (!deser.rollback())
+		rend_clear_geometry_stats();
 	deser >> fb_w_cur;
 	if (deser.version() >= Deserializer::V20)
 	{

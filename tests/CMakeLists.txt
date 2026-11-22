@@ -16,6 +16,7 @@ target_sources(${PROJECT_NAME} PRIVATE
         src/AicaArmTest.cpp
         src/Sh4InterpreterTest.cpp
         src/SorterTest.cpp
+        src/GeometryStatsTest.cpp
         src/TexturePreviewTest.cpp
         src/TextureVramUsageTest.cpp
         src/MmuTest.cpp
