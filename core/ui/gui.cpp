@@ -56,6 +56,7 @@
 #include "texture_viewer_window.h"
 #include "polygon_viewer_window.h"
 #include "vmu_window.h"
+#include "geometry_stats_window.h"
 using namespace i18n;
 
 #ifdef _WIN32
@@ -1332,6 +1333,8 @@ static void gui_display_loadscreen()
 
 static void gui_geometry_stats()
 {
+	if (geometryStatsWindow::detached)
+		return;
 	if (!game_started || !config::ShowGeometryStats
 			|| (gui_state != GuiState::Closed && gui_state != GuiState::Pause))
 		return;
@@ -1623,6 +1626,7 @@ void gui_cancel_load() {
 
 void gui_term()
 {
+	geometryStatsWindow::term();
 	vmuWindow::term();
 	textureViewerWindow::term();
 	polygonViewerWindow::term();
