@@ -16,6 +16,8 @@
  */
 #include "osd.h"
 #include "stdclass.h"
+#include <algorithm>
+#include <mutex>
 #ifdef LIBRETRO
 #include "vmu_xhair.h"
 #endif
@@ -23,12 +25,32 @@
 u32 vmu_lcd_data[8][48 * 32];
 bool vmu_lcd_status[8];
 u64 vmuLastChanged[8];
+static std::mutex vmuMutex;
+
+std::array<VmuScreen, 8> snapshotVmuScreens()
+{
+	std::lock_guard<std::mutex> lock(vmuMutex);
+	std::array<VmuScreen, 8> screens;
+	for (size_t i = 0; i < screens.size(); i++)
+	{
+		std::copy(std::begin(vmu_lcd_data[i]), std::end(vmu_lcd_data[i]), screens[i].pixels.begin());
+		screens[i].active = vmu_lcd_status[i];
+	}
+	return screens;
+}
+
+void resetVmuScreens()
+{
+	std::lock_guard<std::mutex> lock(vmuMutex);
+	std::fill(std::begin(vmu_lcd_status), std::end(vmu_lcd_status), false);
+}
 
 void push_vmu_screen(int bus_id, int bus_port, u8* buffer)
 {
 	int vmu_id = bus_id * 2 + bus_port;
 	if (vmu_id < 0 || vmu_id >= (int)std::size(vmu_lcd_data))
 		return;
+	std::lock_guard<std::mutex> lock(vmuMutex);
 	u32 *p = &vmu_lcd_data[vmu_id][0];
 	for (int i = 0; i < (int)std::size(vmu_lcd_data[vmu_id]); i++, buffer++)
 #ifdef LIBRETRO

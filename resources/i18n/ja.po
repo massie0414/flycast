@@ -2967,6 +2967,18 @@ msgstr "Switchではサポートされていません"
 msgid "Texture Viewer"
 msgstr "テクスチャビューアー"
 
+msgid "VMU Window"
+msgstr "ビジュアルメモリ"
+
+msgid "Show VMU in Separate Window"
+msgstr "ビジュアルメモリを別ウィンドウで表示"
+
+msgid "Display VMU LCD screens in a resizable window. You can move it to another monitor."
+msgstr "ビジュアルメモリの画面を、サイズ変更できる別ウィンドウに表示します。別のモニターにも移動できます。"
+
+msgid "Waiting for VMU screen data. Connect a VMU in Settings > Controls and resume the game."
+msgstr "ビジュアルメモリの画面データを待っています。「設定」→「コントロール」でVMUを接続し、ゲームを再開してください。"
+
 msgid "Textures"
 msgstr "テクスチャ"
 

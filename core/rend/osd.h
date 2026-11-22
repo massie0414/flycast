@@ -18,6 +18,7 @@
 
 #include "types.h"
 #include "cfg/option.h"
+#include <array>
 
 // VMUs
 extern u32 vmu_lcd_data[8][48 * 32];
@@ -25,6 +26,15 @@ extern bool vmu_lcd_status[8];
 extern u64 vmuLastChanged[8];
 
 void push_vmu_screen(int bus_id, int bus_port, u8* buffer);
+
+struct VmuScreen
+{
+	std::array<u32, 48 * 32> pixels;
+	bool active;
+};
+// Copies LCDs under a lock for consumers outside the emulation/render threads.
+std::array<VmuScreen, 8> snapshotVmuScreens();
+void resetVmuScreens();
 
 // Crosshair
 const u32 *getCrosshairTextureData();
