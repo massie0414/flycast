@@ -9,12 +9,14 @@ set "VSWHERE=%ProgramFiles(x86)%\Microsoft Visual Studio\Installer\vswhere.exe"
 set "VS_INSTALL="
 set "DEVENV_EXE="
 set "GIT_EXE="
+set "NO_OPEN="
+if /i "%~1"=="--no-open" set "NO_OPEN=1"
 
 call :find_vs
 if not defined VS_INSTALL (
-    echo Visual Studio Community 2022 with Desktop development for C++ is required.
+    echo Visual Studio 2026 or 2022 with Desktop development for C++ is required.
     set "install_vs=n"
-    set /p install_vs="Install it now? This may show a Windows administrator prompt. [y/N]: "
+    set /p install_vs="Install Visual Studio Community 2022 now? This may show a Windows administrator prompt. [y/N]: "
     if /i "!install_vs!"=="y" (
         call :install_vs_community
         call :find_vs
@@ -23,7 +25,7 @@ if not defined VS_INSTALL (
 
 if not defined VS_INSTALL (
     echo.
-    echo Visual Studio 2022 with MSVC x64/x86 build tools was not found.
+    echo Visual Studio 2026 or 2022 with MSVC x64/x86 build tools was not found.
     echo Install "Desktop development with C++" from:
     echo https://visualstudio.microsoft.com/vs/community/
     goto :fail
@@ -67,22 +69,36 @@ if not exist "core\deps\glslang\CMakeLists.txt" (
 )
 
 echo.
-echo Generating Visual Studio 2022 x64 project...
-"%CMAKE_EXE%" -B build -G "Visual Studio 17 2022" -A x64 -DUSE_DX9=OFF
+echo Generating Visual Studio %VS_YEAR% x64 project...
+if "%VS_YEAR%"=="2026" (
+    "%CMAKE_EXE%" --help | findstr /c:"Visual Studio 18 2026" >nul
+    if errorlevel 1 (
+        echo CMake 4.2 or newer is required. Update C++ CMake tools for Windows in Visual Studio Installer.
+        goto :fail
+    )
+    "%CMAKE_EXE%" --preset vs2026-x64
+) else (
+    "%CMAKE_EXE%" -B "%BUILD_DIR%" -G "Visual Studio 17 2022" -A x64 -DUSE_DX9=OFF
+)
 if errorlevel 1 goto :fail
 
 call :say_success "Visual Studio project generated."
 
-if exist "build\flycast.sln" (
-    set "PROJECT_FILE=%CD%\build\flycast.sln"
+if exist "%BUILD_DIR%\flycast.slnx" (
+    set "PROJECT_FILE=%CD%\%BUILD_DIR%\flycast.slnx"
 ) else (
-    if exist "build\flycast.vcxproj" (
-        set "PROJECT_FILE=%CD%\build\flycast.vcxproj"
+    if exist "%BUILD_DIR%\flycast.sln" (
+        set "PROJECT_FILE=%CD%\%BUILD_DIR%\flycast.sln"
     ) else (
         echo.
-        echo Could not find build\flycast.sln or build\flycast.vcxproj.
+        echo Could not find %BUILD_DIR%\flycast.slnx or %BUILD_DIR%\flycast.sln.
         goto :fail
     )
+)
+
+if defined NO_OPEN (
+    echo !PROJECT_FILE!
+    goto :done
 )
 
 echo.
@@ -105,8 +121,16 @@ goto :done
 :find_vs
 set "VS_INSTALL="
 if exist "%VSWHERE%" (
+    for /f "usebackq delims=" %%i in (`"%VSWHERE%" -latest -products * -version [18.0^,19.0^) -requires Microsoft.VisualStudio.Component.VC.Tools.x86.x64 -property installationPath`) do (
+        set "VS_INSTALL=%%i"
+        set "VS_YEAR=2026"
+        set "BUILD_DIR=build\vs2026"
+    )
+    if defined VS_INSTALL exit /b 0
     for /f "usebackq delims=" %%i in (`"%VSWHERE%" -latest -products * -version [17.0^,18.0^) -requires Microsoft.VisualStudio.Component.VC.Tools.x86.x64 -property installationPath`) do (
         set "VS_INSTALL=%%i"
+        set "VS_YEAR=2022"
+        set "BUILD_DIR=build"
     )
 )
 exit /b 0
@@ -135,6 +159,10 @@ exit /b 0
 
 :find_git
 set "GIT_EXE="
+for /f "delims=" %%i in ('where git.exe 2^>nul') do (
+    set "GIT_EXE=%%i"
+    exit /b 0
+)
 if defined VS_INSTALL (
     set "VS_GIT=%VS_INSTALL%\Common7\IDE\CommonExtensions\Microsoft\TeamFoundation\Team Explorer\Git\mingw64\bin\git.exe"
     if exist "!VS_GIT!" (
@@ -196,8 +224,9 @@ exit /b 0
 :fail
 echo.
 echo Project generation failed.
-pause
+if not defined NO_OPEN pause
 exit /b 1
 
 :done
-pause
+if not defined NO_OPEN pause
+exit /b 0

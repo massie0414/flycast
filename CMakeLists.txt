@@ -524,6 +524,10 @@ if(NOT LIBRETRO)
 				endif()
 				# libusb
 				add_subdirectory(core/deps/DreamPicoPort-API/ext/libusb-cmake)
+				if(MSVC)
+					# libusb's translated error strings are UTF-8, independent of the system code page.
+					target_compile_options(usb-1.0 PRIVATE /utf-8)
+				endif()
 			endif()
 
 			# DreamPicoPort-API

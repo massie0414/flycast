@@ -80,6 +80,29 @@ Automated test results are available from the builds page as well.
 
 &emsp;`shell\windows\generate_vs_project.bat`
 
+The script prefers Visual Studio 2026 and falls back to Visual Studio 2022.
+Install the **Desktop development with C++** workload, including a Windows SDK
+and **C++ CMake tools for Windows**. Visual Studio 2026 requires
+[CMake 4.2 or newer](https://cmake.org/cmake/help/v4.2/generator/Visual%20Studio%2018%202026.html).
+
+For Visual Studio 2026, the generated solution is `build\vs2026\flycast.slnx`
+(or `flycast.sln`, depending on the CMake version).
+Open it, select **Release | x64** (or **Debug | x64**), and build the solution.
+The executable is written to `build\vs2026\Release\flycast.exe` (or `Debug`).
+Direct3D 9 is disabled to avoid requiring the legacy DirectX SDK; Direct3D 11,
+OpenGL, and Vulkan remain enabled.
+
+To generate without opening the IDE, run
+`shell\windows\generate_vs_project.bat --no-open`.
+Alternatively, from a Developer PowerShell with CMake on `PATH`:
+
+```powershell
+git submodule update --init --recursive
+cmake --preset vs2026-x64
+cmake --build --preset vs2026-release
+# For a debug build: cmake --build --preset vs2026-debug
+```
+
 ### Linux
 
 #### Dependencies
