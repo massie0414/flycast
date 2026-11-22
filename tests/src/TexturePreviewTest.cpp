@@ -60,6 +60,49 @@ TEST_F(TexturePreviewTest, PaletteSelectionIsApplied)
 	palette32_ram[35] = previous;
 }
 
+TEST_F(TexturePreviewTest, PreviewsUseTopDownRowsAcrossRenderers)
+{
+	PreviewTexture texture;
+	texture.tex_type = TextureType::_8888;
+	// Asymmetric grayscale pixels distinguish every row and column in either
+	// RGBA or BGRA order. Custom replacements have the same source orientation.
+	const std::vector<u32> pixels{
+		0xff111111, 0xff222222,
+		0xff333333, 0xff444444,
+		0xff555555, 0xff666666,
+	};
+	const std::vector<u32> expected{
+		0xff555555, 0xff666666,
+		0xff333333, 0xff444444,
+		0xff111111, 0xff222222,
+	};
+	for (RenderType renderer : {RenderType::OpenGL, RenderType::Vulkan, RenderType::DirectX11})
+		for (bool custom : {false, true})
+		{
+			config::RendererType = renderer;
+			texture.is_custom_replaced = custom;
+			texturePreview::capture(texture, 2, 3, (const u8 *)pixels.data(), false, 3);
+			EXPECT_EQ(texturePreview::snapshot().front()->pixels, expected);
+		}
+}
+
+TEST_F(TexturePreviewTest, DownsampledPreviewStartsAtTopSourceRow)
+{
+	PreviewTexture texture;
+	texture.tex_type = TextureType::_8888;
+	std::vector<u32> pixels(2 * 256, 0xff000000);
+	pixels[0] = pixels[2] = 0xff0000ff; // Bottom two rows.
+	pixels[1] = pixels[3] = 0xff00ff00;
+	pixels[2 * 255] = 0xffff0000; // Top row must not be skipped.
+	pixels[2 * 255 + 1] = 0xffffffff;
+	texturePreview::capture(texture, 2, 256, (const u8 *)pixels.data(), false, 256);
+	const auto image = texturePreview::snapshot().front();
+	ASSERT_EQ(image->previewWidth, 1);
+	ASSERT_EQ(image->previewHeight, 128);
+	EXPECT_EQ(image->pixels.front(), 0xffff0000u);
+	EXPECT_EQ(image->pixels.back(), 0xff0000ffu);
+}
+
 TEST_F(TexturePreviewTest, UsesLargestMipmap)
 {
 	PreviewTexture texture;
@@ -96,8 +139,8 @@ TEST_F(TexturePreviewTest, DoesNotReadBeyondValidRows)
 	texturePreview::capture(texture, 1, 2, (const u8 *)&pixel, false, 1);
 	const auto image = texturePreview::snapshot().front();
 	ASSERT_EQ(image->pixels.size(), 2u);
-	EXPECT_EQ(image->pixels[0], pixel);
-	EXPECT_EQ(image->pixels[1], 0u);
+	EXPECT_EQ(image->pixels[0], 0u);
+	EXPECT_EQ(image->pixels[1], pixel);
 }
 
 TEST_F(TexturePreviewTest, SnapshotsSurviveUpdatesAndDeletion)
