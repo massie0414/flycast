@@ -25,6 +25,7 @@
 #include "hw/maple/maple_devs.h"
 #include "nowide/stackstring.hpp"
 #include "ui/texture_viewer_window.h"
+#include "ui/polygon_viewer_window.h"
 #include "ui/vmu_window.h"
 
 #include <algorithm>
@@ -280,7 +281,7 @@ static LRESULT CALLBACK rawWindowProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM
 			bool pressed = (ri.data.keyboard.Flags & RI_KEY_BREAK) == 0;
 			// A separate viewer is still part of the foreground application.
 			// Accept releases to avoid leaving a previously held game key stuck.
-			if (pressed && (textureViewerWindow::hasFocus() || vmuWindow::hasFocus()))
+			if (pressed && (textureViewerWindow::hasFocus() || vmuWindow::hasFocus() || polygonViewerWindow::hasFocus()))
 				break;
 			u8 keycode = 0xff;
 			if ((ri.data.keyboard.Flags & RI_KEY_E0) != 0)
@@ -305,7 +306,7 @@ static LRESULT CALLBACK rawWindowProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM
 
 	case RIM_TYPEMOUSE:
 		{
-			if (textureViewerWindow::hasFocus() || vmuWindow::hasFocus())
+			if (textureViewerWindow::hasFocus() || vmuWindow::hasFocus() || polygonViewerWindow::hasFocus())
 			{
 				ri.data.mouse.usFlags = MOUSE_MOVE_RELATIVE;
 				ri.data.mouse.lLastX = ri.data.mouse.lLastY = 0;

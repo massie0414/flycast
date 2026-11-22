@@ -9,6 +9,7 @@
 #include "pvr_mem.h"
 #include "Renderer_if.h"
 #include "cfg/option.h"
+#include "rend/polygon_preview.h"
 
 #include <algorithm>
 #include <utility>
@@ -1180,9 +1181,11 @@ private:
 static void getRegionTileClipping(u32& xmin, u32& xmax, u32& ymin, u32& ymax);
 static void getRegionSettings(int passNumber, RenderPass& pass);
 
-static void parseRenderPass(RenderPass& pass, const RenderPass& previousPass, rend_context& ctx, bool primRestart)
+static void parseRenderPass(RenderPass& pass, const RenderPass& previousPass, rend_context& ctx, bool primRestart,
+		polygonPreview::Capture& preview)
 {
 	ctx.countGeometry(pass, previousPass);
+	preview.addPass(pass, previousPass);
 	const bool perPixel = config::RendererType == RenderType::OpenGL_OIT
 			|| config::RendererType == RenderType::DirectX11_OIT
 			|| config::RendererType == RenderType::Vulkan_OIT;
@@ -1233,7 +1236,7 @@ void setTileClipping(rend_context& ctx)
 	ctx.tileClip.size.y = ymax - ctx.tileClip.origin.y;
 }
 
-static void ta_parse_vdrc(TA_context* ctx, bool primRestart)
+static void ta_parse_vdrc(TA_context* ctx, bool primRestart, polygonPreview::Capture& preview)
 {
 	verify(vd_ctx == nullptr);
 	vd_ctx = ctx;
@@ -1289,7 +1292,7 @@ static void ta_parse_vdrc(TA_context* ctx, bool primRestart)
 			render_pass.mvo_count = vd_rc.global_param_mvo.size();
 			render_pass.mvo_tr_count = vd_rc.global_param_mvo_tr.size();
 
-			parseRenderPass(render_pass, previousPass, vd_rc, primRestart);
+			parseRenderPass(render_pass, previousPass, vd_rc, primRestart, preview);
 			previousPass = render_pass;
 		}
 		// Before tile rejection: keep every submitted object in the estimate.
@@ -1304,7 +1307,7 @@ static void ta_parse_vdrc(TA_context* ctx, bool primRestart)
 	vd_ctx = nullptr;
 }
 
-static void ta_parse_naomi2(TA_context* ctx, bool primRestart)
+static void ta_parse_naomi2(TA_context* ctx, bool primRestart, polygonPreview::Capture& preview)
 {
 	for (PolyParam& pp : ctx->rend.global_param_op)
 	{
@@ -1333,7 +1336,7 @@ static void ta_parse_naomi2(TA_context* ctx, bool primRestart)
 
 	for (RenderPass& pass : ctx->rend.render_passes)
 	{
-		parseRenderPass(pass, previousPass, ctx->rend, primRestart);
+		parseRenderPass(pass, previousPass, ctx->rend, primRestart, preview);
 		// Disable blending for opaque polys of the first pass
 		if (&pass == &ctx->rend.render_passes[0])
 		{
@@ -1349,10 +1352,12 @@ static void ta_parse_naomi2(TA_context* ctx, bool primRestart)
 void ta_parse(TA_context *ctx, bool primRestart)
 {
 	ctx->rend.geometryStats = {};
+	polygonPreview::Capture preview(ctx->rend);
 	if (settings.platform.isNaomi2())
-		ta_parse_naomi2(ctx, primRestart);
+		ta_parse_naomi2(ctx, primRestart, preview);
 	else
-		ta_parse_vdrc(ctx, primRestart);
+		ta_parse_vdrc(ctx, primRestart, preview);
+	preview.publish();
 	// Shared opaque/translucent modifier lists can reference the same geometry.
 	// Count the submitted triangles once, regardless of how often they are drawn.
 	auto& stats = ctx->rend.geometryStats;

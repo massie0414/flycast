@@ -19,6 +19,7 @@
 #include "settings.h"
 #include "gui.h"
 #include "vmu_window.h"
+#include "polygon_viewer_window.h"
 #include "wsi/context.h"
 
 enum RenderAPI {
@@ -225,6 +226,9 @@ void gui_settings_video()
 					T("Display VMU LCD screens in a resizable window. You can move it to another monitor."));
 		OptionCheckbox(T("Show Texture Viewer"), config::ShowTextureViewer,
 				T("Show loaded game textures in the texture viewer. Collects previews only while enabled."));
+		if (polygonViewerWindow::supported)
+			OptionCheckbox(T("Show Polygon Viewer"), config::ShowPolygonViewer,
+					T("Display polygon edges as green lines in a separate window. Collects geometry only while enabled."));
     	OptionCheckbox(T("Full Framebuffer Emulation"), config::EmulateFramebuffer,
     			T("Fully accurate VRAM framebuffer emulation. Helps games that directly access the framebuffer for special effects. "
     			"Very slow and incompatible with upscaling and wide screen."));
