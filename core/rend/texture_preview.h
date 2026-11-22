@@ -21,7 +21,7 @@ struct Image
 	int previewWidth, previewHeight;
 	const char *format;
 	bool custom;
-	std::vector<u32> pixels; // RGBA, independent of the renderer's color order
+	std::vector<u32> pixels; // Top-down RGBA, independent of the renderer's color order
 };
 
 void setEnabled(bool enabled);
