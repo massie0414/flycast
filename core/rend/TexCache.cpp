@@ -278,6 +278,7 @@ void BaseTextureCacheData::protectVRam()
 		else
 			delete block;
 	}
+	texturePreview::trackVram(*this);
 }
 
 void BaseTextureCacheData::unprotectVRam()
@@ -286,6 +287,7 @@ void BaseTextureCacheData::unprotectVRam()
 	if (lock_block)
 		libCore_vramlock_Unlock_block_wb(lock_block);
 	lock_block = nullptr;
+	texturePreview::invalidateVram(this);
 }
 
 bool BaseTextureCacheData::Delete()
@@ -1279,6 +1281,7 @@ template void WriteFramebuffer<2, 1, 0, 3>(u32 width, u32 height, const u8 *data
 void BaseTextureCacheData::invalidate()
 {
 	dirty = FrameCount;
+	texturePreview::invalidateVram(this);
 
 	libCore_vramlock_Unlock_block_wb(lock_block);
 	lock_block = nullptr;

@@ -11,6 +11,7 @@ target_sources(${PROJECT_NAME} PRIVATE
         texconv.h
         texture_preview.cpp
         texture_preview.h
+        texture_vram_usage.h
         transform_matrix.cpp
         transform_matrix.h
         norend/norend.cpp)

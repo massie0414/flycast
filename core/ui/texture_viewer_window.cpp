@@ -29,6 +29,7 @@ std::atomic<bool> stopping{}, closed{};
 struct Labels
 {
 	std::wstring title, count, filter, empty, custom, back;
+	std::wstring vram, peak, vramNote;
 };
 
 // All controls, GDI resources and view state belong to the viewer thread.
@@ -37,15 +38,18 @@ struct View
 {
 	Labels labels;
 	HWND window{}, countLabel{}, filterLabel{}, filterEdit{}, previous{}, next{}, pageLabel{}, back{};
+	HWND vramLabel{}, peakLabel{}, vramNoteLabel{};
 	HFONT font{};
 	int dpi = 96, width = 0, height = 0, page = 0, scroll = 0, wheel = 0;
+	int contentTop = 0, meterTop = 0;
+	double vramFraction = 0;
 	u64 generation = 0;
 	std::wstring filter;
 	std::vector<std::shared_ptr<const texturePreview::Image>> images;
 	std::shared_ptr<const texturePreview::Image> selected;
 
 	int px(int value) const { return MulDiv(value, dpi, 96); }
-	int top() const { return px(112); }
+	int top() const { return contentTop; }
 	int columns() const { return std::max(1, (width - px(16)) / px(144)); }
 	int visibleCount() const { return std::max(0, std::min(pageSize, (int)images.size() - page * pageSize)); }
 	int pages() const { return std::max(1, ((int)images.size() + pageSize - 1) / pageSize); }
@@ -101,6 +105,29 @@ struct View
 		GetWindowTextW(countLabel, oldCount, (int)std::size(oldCount));
 		if (wcscmp(count, oldCount) != 0)
 			SetWindowTextW(countLabel, count);
+		const auto usage = texturePreview::vramUsage();
+		constexpr double mib = 1024.0 * 1024.0;
+		const double fraction = usage.totalBytes == 0 ? 0.0 : double(usage.usedBytes) / usage.totalBytes;
+		auto setText = [](HWND control, const wchar_t *text) {
+			wchar_t previous[512];
+			GetWindowTextW(control, previous, (int)std::size(previous));
+			if (wcscmp(previous, text) == 0)
+				return false;
+			SetWindowTextW(control, text);
+			return true;
+		};
+		wchar_t memoryText[512];
+		swprintf(memoryText, std::size(memoryText), labels.vram.c_str(),
+				usage.usedBytes / mib, usage.totalBytes / mib, fraction * 100.0);
+		bool usageChanged = setText(vramLabel, memoryText);
+		swprintf(memoryText, std::size(memoryText), labels.peak.c_str(),
+				usage.peakBytes / mib, usage.remainingBytes() / mib);
+		usageChanged |= setText(peakLabel, memoryText);
+		if (usageChanged || vramFraction != fraction)
+		{
+			vramFraction = fraction;
+			layout();
+		}
 		nextImages.erase(std::remove_if(nextImages.begin(), nextImages.end(), [&](const auto& image) {
 			std::wstring label = description(*image);
 			std::transform(label.begin(), label.end(), label.begin(), towlower);
@@ -120,13 +147,37 @@ struct View
 		GetClientRect(window, &client);
 		width = client.right;
 		height = client.bottom;
-		MoveWindow(countLabel, px(12), px(10), width - px(24), px(24), TRUE);
-		MoveWindow(filterLabel, px(12), px(43), px(80), px(24), TRUE);
-		MoveWindow(filterEdit, px(96), px(39), std::max(px(60), width - px(108)), px(28), TRUE);
-		MoveWindow(previous, px(12), px(77), px(36), px(26), TRUE);
-		MoveWindow(pageLabel, px(56), px(80), px(68), px(22), TRUE);
-		MoveWindow(next, px(130), px(77), px(36), px(26), TRUE);
-		MoveWindow(back, px(180), px(77), px(120), px(26), TRUE);
+		// Measure wrapped labels so the VRAM summary remains readable at narrow
+		// widths and on monitors with different DPI settings.
+		HDC dc = GetDC(window);
+		HGDIOBJ previousFont = SelectObject(dc, font);
+		int y = px(10);
+		auto placeLabel = [&](HWND label) {
+			wchar_t text[512];
+			GetWindowTextW(label, text, (int)std::size(text));
+			RECT bounds{0, 0, std::max(px(40), width - px(24)), 0};
+			DrawTextW(dc, text, -1, &bounds, DT_CALCRECT | DT_WORDBREAK | DT_NOPREFIX);
+			int labelHeight = std::max(px(22), (int)bounds.bottom);
+			MoveWindow(label, px(12), y, bounds.right, labelHeight, TRUE);
+			y += labelHeight + px(4);
+		};
+		placeLabel(countLabel);
+		placeLabel(vramLabel);
+		meterTop = y;
+		y += px(14);
+		placeLabel(peakLabel);
+		placeLabel(vramNoteLabel);
+		SelectObject(dc, previousFont);
+		ReleaseDC(window, dc);
+		y += px(4);
+		MoveWindow(filterLabel, px(12), y + px(4), px(80), px(24), TRUE);
+		MoveWindow(filterEdit, px(96), y, std::max(px(60), width - px(108)), px(28), TRUE);
+		y += px(38);
+		MoveWindow(previous, px(12), y, px(36), px(26), TRUE);
+		MoveWindow(pageLabel, px(56), y + px(3), px(68), px(22), TRUE);
+		MoveWindow(next, px(130), y, px(36), px(26), TRUE);
+		MoveWindow(back, px(180), y, px(120), px(26), TRUE);
+		contentTop = y + px(35);
 		updateScroll();
 		invalidate();
 	}
@@ -137,7 +188,8 @@ struct View
 		font = CreateFontW(-px(15), 0, 0, 0, FW_NORMAL, FALSE, FALSE, FALSE,
 				DEFAULT_CHARSET, OUT_DEFAULT_PRECIS, CLIP_DEFAULT_PRECIS, CLEARTYPE_QUALITY,
 				DEFAULT_PITCH, L"Segoe UI");
-		for (HWND control : {countLabel, filterLabel, filterEdit, previous, next, pageLabel, back})
+		for (HWND control : {countLabel, filterLabel, filterEdit, previous, next, pageLabel, back,
+				vramLabel, peakLabel, vramNoteLabel})
 			SendMessageW(control, WM_SETFONT, (WPARAM)font, TRUE);
 		if (old)
 			DeleteObject(old);
@@ -150,6 +202,9 @@ struct View
 					0, 0, 0, 0, window, (HMENU)(INT_PTR)id, GetModuleHandleW(nullptr), nullptr);
 		};
 		countLabel = control(L"STATIC", L"", 0);
+		vramLabel = control(L"STATIC", L"", 0);
+		peakLabel = control(L"STATIC", L"", 0);
+		vramNoteLabel = control(L"STATIC", labels.vramNote.c_str(), 0);
 		filterLabel = control(L"STATIC", labels.filter.c_str(), 0);
 		filterEdit = control(L"EDIT", L"", WS_BORDER | WS_TABSTOP | ES_AUTOHSCROLL, filterId);
 		SendMessageW(filterEdit, EM_SETLIMITTEXT, 128, 0);
@@ -205,6 +260,10 @@ struct View
 			HGDIOBJ oldFont = SelectObject(dc, font);
 			RECT all{0, 0, width, height};
 			FillRect(dc, &all, GetSysColorBrush(COLOR_BTNFACE));
+			RECT meter{px(12), meterTop, width - px(12), meterTop + px(8)};
+			FillRect(dc, &meter, GetSysColorBrush(COLOR_3DSHADOW));
+			meter.right = meter.left + (LONG)((meter.right - meter.left) * vramFraction);
+			FillRect(dc, &meter, GetSysColorBrush(COLOR_HIGHLIGHT));
 			SetTextColor(dc, GetSysColor(COLOR_WINDOWTEXT));
 			SetBkMode(dc, TRANSPARENT);
 			IntersectClipRect(dc, 0, top(), width, height);
@@ -298,7 +357,7 @@ LRESULT CALLBACK windowProc(HWND window, UINT message, WPARAM wParam, LPARAM lPa
 		return 0;
 	}
 	case WM_GETMINMAXINFO:
-		((MINMAXINFO *)lParam)->ptMinTrackSize = {view->px(360), view->px(300)};
+		((MINMAXINFO *)lParam)->ptMinTrackSize = {view->px(360), view->px(440)};
 		return 0;
 	case WM_COMMAND:
 		switch (LOWORD(wParam))
@@ -461,7 +520,10 @@ bool update(bool enabled)
 		Labels labels{L"Flycast - " + nowide::widen(T("Texture Viewer")),
 				nowide::widen(T("Loaded textures: %d (up to %d)")), nowide::widen(T("Filter")),
 				nowide::widen(T("No textures to display. Resume the game to load textures, or clear the filter.")),
-				nowide::widen(T("Custom")), nowide::widen(T("Back"))};
+				nowide::widen(T("Custom")), nowide::widen(T("Back")),
+				nowide::widen(T("Texture VRAM (estimated): %.2f / %.2f MiB (%.1f%%)")),
+				nowide::widen(T("Peak since opening: %.2f MiB | Remaining (upper bound): %.2f MiB")),
+				nowide::widen(T("Framebuffers and other allocations are not counted. Remaining is not actual free VRAM."))};
 		worker.thread = std::thread(run, std::move(labels));
 	}
 	return true;

@@ -53,6 +53,15 @@ void gui_texture_viewer()
 	{
 		auto images = texturePreview::snapshot();
 		ImGui::TextWrapped(T("Loaded textures: %d (up to %d)"), (int)images.size(), (int)texturePreview::MaxEntries);
+		const auto usage = texturePreview::vramUsage();
+		constexpr double mib = 1024.0 * 1024.0;
+		const double fraction = usage.totalBytes == 0 ? 0.0 : double(usage.usedBytes) / usage.totalBytes;
+		ImGui::TextWrapped(T("Texture VRAM (estimated): %.2f / %.2f MiB (%.1f%%)"),
+				usage.usedBytes / mib, usage.totalBytes / mib, fraction * 100.0);
+		ImGui::ProgressBar((float)fraction, ImVec2(-1, uiScaled(8)), "");
+		ImGui::TextWrapped(T("Peak since opening: %.2f MiB | Remaining (upper bound): %.2f MiB"),
+				usage.peakBytes / mib, usage.remainingBytes() / mib);
+		ImGui::TextWrapped("%s", T("Framebuffers and other allocations are not counted. Remaining is not actual free VRAM."));
 		const float filterWidth = std::max(uiScaled(40), ImGui::GetContentRegionAvail().x
 				- ImGui::CalcTextSize(T("Filter")).x - ImGui::GetStyle().ItemInnerSpacing.x);
 		if (filter.Draw(T("Filter"), filterWidth))

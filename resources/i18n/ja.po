@@ -2986,3 +2986,14 @@ msgstr "表示するテクスチャがありません。ゲームを再開して
 msgid "Custom"
 msgstr "カスタム"
 
+#, c-format
+msgid "Texture VRAM (estimated): %.2f / %.2f MiB (%.1f%%)"
+msgstr "VRAM使用量（テクスチャ推定）: %.2f / %.2f MiB (%.1f%%)"
+
+#, c-format
+msgid "Peak since opening: %.2f MiB | Remaining (upper bound): %.2f MiB"
+msgstr "最大（表示開始後）: %.2f MiB | 残り（上限）: %.2f MiB"
+
+msgid "Framebuffers and other allocations are not counted. Remaining is not actual free VRAM."
+msgstr "描画バッファやゲーム側の確保領域は未計測です。残りは実際の空き容量とは異なります。"
+

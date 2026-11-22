@@ -3086,3 +3086,17 @@ msgstr ""
 #: core/ui/gui_texture_viewer.cpp
 msgid "Custom"
 msgstr ""
+
+#: core/ui/gui_texture_viewer.cpp core/ui/texture_viewer_window.cpp
+#, c-format
+msgid "Texture VRAM (estimated): %.2f / %.2f MiB (%.1f%%)"
+msgstr ""
+
+#: core/ui/gui_texture_viewer.cpp core/ui/texture_viewer_window.cpp
+#, c-format
+msgid "Peak since opening: %.2f MiB | Remaining (upper bound): %.2f MiB"
+msgstr ""
+
+#: core/ui/gui_texture_viewer.cpp core/ui/texture_viewer_window.cpp
+msgid "Framebuffers and other allocations are not counted. Remaining is not actual free VRAM."
+msgstr ""

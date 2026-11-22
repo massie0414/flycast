@@ -11,6 +11,7 @@ std::atomic<u64> activeGeneration{0};
 u64 nextGeneration = 0;
 u64 nextRevision = 0;
 std::unordered_map<const BaseTextureCacheData *, std::shared_ptr<const Image>> images;
+VramUsageTracker vramTracker;
 
 u32 rgba(u32 color, bool directX)
 {
@@ -26,6 +27,7 @@ void setEnabled(bool enabled)
 	if (enabled == (activeGeneration.load() != 0))
 		return;
 	images.clear();
+	vramTracker.reset(enabled ? VRAM_SIZE : 0);
 	activeGeneration = enabled ? ++nextGeneration : 0;
 }
 
@@ -39,6 +41,35 @@ void remove(const BaseTextureCacheData *texture)
 		return;
 	std::lock_guard<std::mutex> lock(mutex);
 	images.erase(texture);
+	vramTracker.remove(texture);
+}
+
+void trackVram(const BaseTextureCacheData& texture)
+{
+	const u64 currentGeneration = generation();
+	if (currentGeneration == 0)
+		return;
+	// Includes the VQ codebook and all mip levels, in the original console
+	// format. Upscaling and custom replacements don't consume Dreamcast VRAM.
+	u64 end = u64(texture.mmStartAddress) + texture.size;
+	std::lock_guard<std::mutex> lock(mutex);
+	if (generation() == currentGeneration)
+		vramTracker.track(&texture, texture.startAddress,
+				end > texture.startAddress ? end - texture.startAddress : 0);
+}
+
+void invalidateVram(const BaseTextureCacheData *texture)
+{
+	if (generation() == 0)
+		return;
+	std::lock_guard<std::mutex> lock(mutex);
+	vramTracker.remove(texture);
+}
+
+VramUsage vramUsage()
+{
+	std::lock_guard<std::mutex> lock(mutex);
+	return vramTracker.snapshot();
 }
 
 void capture(const BaseTextureCacheData& texture, int width, int height,

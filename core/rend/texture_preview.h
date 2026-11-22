@@ -1,6 +1,7 @@
 #pragma once
 
 #include "types.h"
+#include "texture_vram_usage.h"
 #include <memory>
 #include <vector>
 
@@ -28,5 +29,8 @@ u64 generation(); // zero while disabled
 void capture(const BaseTextureCacheData& texture, int width, int height,
 		const u8 *data, bool mipmapsIncluded, int validHeight);
 void remove(const BaseTextureCacheData *texture);
+void trackVram(const BaseTextureCacheData& texture);
+void invalidateVram(const BaseTextureCacheData *texture);
+VramUsage vramUsage();
 std::vector<std::shared_ptr<const Image>> snapshot();
 }

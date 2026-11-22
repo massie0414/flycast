@@ -17,6 +17,7 @@ target_sources(${PROJECT_NAME} PRIVATE
         src/Sh4InterpreterTest.cpp
         src/SorterTest.cpp
         src/TexturePreviewTest.cpp
+        src/TextureVramUsageTest.cpp
         src/MmuTest.cpp
         src/HttpTest.cpp
         src/IniFileTest.cpp
