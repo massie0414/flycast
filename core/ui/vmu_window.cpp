@@ -20,7 +20,7 @@ namespace
 constexpr wchar_t windowClass[] = L"FlycastVmuWindow";
 constexpr UINT stopMessage = WM_APP + 1;
 std::atomic<HWND> lcdWindow{};
-std::atomic<bool> stopping{}, closed{};
+std::atomic<bool> stopping{}, closed{}, finished{true};
 
 struct Labels
 {
@@ -211,6 +211,10 @@ LRESULT CALLBACK windowProc(HWND window, UINT message, WPARAM wParam, LPARAM lPa
 
 void run(Labels labels)
 {
+	struct Completion
+	{
+		~Completion() { finished = true; }
+	} completion;
 	WNDCLASSW wc{};
 	wc.lpfnWndProc = windowProc;
 	wc.hInstance = GetModuleHandleW(nullptr);
@@ -268,6 +272,7 @@ bool update(bool enabled)
 	if (!worker.thread.joinable())
 	{
 		stopping = false;
+		finished = false;
 		Labels labels{L"Flycast - " + nowide::widen(i18n::T("VMU Window")),
 				nowide::widen(i18n::T("Waiting for VMU screen data. Connect a VMU in Settings > Controls and resume the game."))};
 		worker.thread = std::thread(run, std::move(labels));
@@ -281,7 +286,17 @@ void term()
 	if (HWND window = lcdWindow.load())
 		PostMessageW(window, stopMessage, 0, 0);
 	if (worker.thread.joinable())
+	{
+		// Window destruction can synchronously send focus messages to the game
+		// thread. Service them before joining to avoid a shutdown deadlock.
+		while (!finished)
+		{
+			MSG message;
+			PeekMessageW(&message, nullptr, 0, 0, PM_NOREMOVE);
+			MsgWaitForMultipleObjects(0, nullptr, FALSE, 10, QS_SENDMESSAGE);
+		}
 		worker.thread.join();
+	}
 }
 
 bool hasFocus()

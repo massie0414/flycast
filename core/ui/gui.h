@@ -31,6 +31,8 @@ void gui_display_osd();
 void gui_display_profiler();
 void gui_texture_viewer();
 void gui_open_onboarding();
+// Main UI thread: close detached windows before destroying the game window.
+void gui_close_auxiliary_windows();
 void gui_term();
 void gui_cancel_load();
 void gui_refresh_files();

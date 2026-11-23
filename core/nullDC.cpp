@@ -168,6 +168,7 @@ void flycast_term()
 	gui_cancel_load();
 	lua::term();
 	emu.term();
+	gui_close_auxiliary_windows();
 	os_DestroyWindow();
 	gui_term();
 	os_TermInput();
