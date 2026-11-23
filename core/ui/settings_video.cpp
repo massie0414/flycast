@@ -20,6 +20,7 @@
 #include "gui.h"
 #include "vmu_window.h"
 #include "polygon_viewer_window.h"
+#include "fps_window.h"
 #include "wsi/context.h"
 
 enum RenderAPI {
@@ -395,7 +396,11 @@ void gui_settings_video()
     	OptionRadioButton(T("Force Linear"), config::TextureFiltering, 2, T("Force linear filtering for all textures. Smoother appearance, but may cause various rendering issues. This option usually does not affect performance."));
     	ImGui::Columns(1, nullptr, false);
 
-    	OptionCheckbox(T("Show FPS Counter"), config::ShowFPS, T("Show on-screen frame/sec counter"));
+		if (fpsWindow::detached)
+			OptionCheckbox(T("Show FPS in Separate Window"), config::ShowFPS,
+					T("Display the game's frame rate in a separate window. Updates once per second."));
+		else
+			OptionCheckbox(T("Show FPS Counter"), config::ShowFPS, T("Show on-screen frame/sec counter"));
 		OptionCheckbox(T("Show Geometry Statistics"), config::ShowGeometryStats,
 				T("Show vertex and triangle counts for the latest screen render."));
     }

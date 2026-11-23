@@ -57,6 +57,7 @@
 #include "polygon_viewer_window.h"
 #include "vmu_window.h"
 #include "geometry_stats_window.h"
+#include "fps_window.h"
 using namespace i18n;
 
 #ifdef _WIN32
@@ -642,6 +643,8 @@ static void gui_display_commands()
 		if (polygonViewerWindow::supported)
 			OptionCheckbox(T("Polygon Viewer"), config::ShowPolygonViewer);
 		OptionCheckbox(T("Geometry Statistics"), config::ShowGeometryStats);
+		if (fpsWindow::detached)
+			OptionCheckbox(T("FPS Window"), config::ShowFPS);
 		if (vmuWindow::supported && settings.platform.isConsole())
 			OptionCheckbox(T("VMU Window"), config::ShowVmuWindow);
 
@@ -1511,7 +1514,7 @@ static float fps = -1;
 
 static std::string getFPSNotification()
 {
-	if (config::ShowFPS)
+	if (config::ShowFPS && !fpsWindow::detached)
 	{
 		u64 now = getTimeMs();
 		if (now - LastFPSTime >= 1000) {
@@ -1626,6 +1629,7 @@ void gui_cancel_load() {
 
 void gui_term()
 {
+	fpsWindow::term();
 	geometryStatsWindow::term();
 	vmuWindow::term();
 	textureViewerWindow::term();

@@ -34,6 +34,7 @@
 #include "rend/polygon_preview.h"
 #include "vmu_window.h"
 #include "geometry_stats_window.h"
+#include "fps_window.h"
 
 #include <chrono>
 #include <thread>
@@ -48,6 +49,8 @@ bool mainui_rend_frame()
 
 	os_DoEvents();
 	os_UpdateInputState();
+	if (!fpsWindow::update(game_started && config::ShowFPS, !gui_is_open(), settings.input.fastForwardMode))
+		config::ShowFPS = false;
 	if (!geometryStatsWindow::update(game_started && config::ShowGeometryStats))
 		config::ShowGeometryStats = false;
 	if (!vmuWindow::update(game_started && settings.platform.isConsole() && config::ShowVmuWindow))
@@ -77,6 +80,7 @@ bool mainui_rend_frame()
 		try {
 			if (!emu.render())
 				return false;
+			fpsWindow::frameRendered();
 			if (config::ProfilerEnabled && config::ProfilerDrawToGUI)
 				gui_display_profiler();
 		} catch (const RendererException& e) {
