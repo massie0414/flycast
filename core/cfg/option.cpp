@@ -75,6 +75,7 @@ Option<bool> ShowFPS("rend.ShowFPS", true);
 Option<bool> ShowFPS("rend.ShowFPS");
 #endif
 Option<bool> ShowGeometryStats("rend.ShowGeometryStats", true);
+Option<bool> ShowResourceUsage("rend.ShowResourceUsage", true);
 Option<bool> ShowTextureViewer("rend.ShowTextureViewer");
 Option<bool> ShowPolygonViewer("rend.ShowPolygonViewer");
 Option<bool> RenderToTextureBuffer("rend.RenderToTextureBuffer");

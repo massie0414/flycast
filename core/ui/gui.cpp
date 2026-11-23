@@ -57,6 +57,7 @@
 #include "polygon_viewer_window.h"
 #include "vmu_window.h"
 #include "geometry_stats_window.h"
+#include "resource_usage_window.h"
 #include "fps_window.h"
 using namespace i18n;
 
@@ -643,6 +644,8 @@ static void gui_display_commands()
 		if (polygonViewerWindow::supported)
 			OptionCheckbox(T("Polygon Viewer"), config::ShowPolygonViewer);
 		OptionCheckbox(T("Geometry Statistics"), config::ShowGeometryStats);
+		if (resourceUsageWindow::supported)
+			OptionCheckbox(T("CPU / Memory Usage"), config::ShowResourceUsage);
 		if (fpsWindow::detached)
 			OptionCheckbox(T("FPS Window"), config::ShowFPS);
 		if (vmuWindow::supported && settings.platform.isConsole())
@@ -1631,6 +1634,7 @@ void gui_term()
 {
 	fpsWindow::term();
 	geometryStatsWindow::term();
+	resourceUsageWindow::term();
 	vmuWindow::term();
 	textureViewerWindow::term();
 	polygonViewerWindow::term();

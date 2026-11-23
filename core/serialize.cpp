@@ -17,6 +17,7 @@
 #include "cfg/option.h"
 #include "imgread/common.h"
 #include "achievements/achievements.h"
+#include "profiler/resource_usage.h"
 
 void dc_serialize(Serializer& ser)
 {
@@ -58,6 +59,7 @@ void dc_serialize(Serializer& ser)
 
 void dc_deserialize(Deserializer& deser)
 {
+	resourceUsage::reset();
 	DEBUG_LOG(SAVESTATE, "Loading state version %d", deser.version());
 
 	aica::deserialize(deser);
