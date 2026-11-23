@@ -37,6 +37,7 @@
 #include "geometry_stats_window.h"
 #include "resource_usage_window.h"
 #include "fps_window.h"
+#include "audio_volume_window.h"
 
 #include <chrono>
 #include <thread>
@@ -51,6 +52,9 @@ bool mainui_rend_frame()
 
 	os_DoEvents();
 	os_UpdateInputState();
+	if (!audioVolumeWindow::update(game_started && config::ShowAudioVolume,
+			!gui_is_open() && !settings.input.fastForwardMode && !settings.aica.muteAudio, config::AudioVolume))
+		config::ShowAudioVolume = false;
 	if (!fpsWindow::update(game_started && config::ShowFPS, !gui_is_open(), settings.input.fastForwardMode))
 		config::ShowFPS = false;
 	if (!geometryStatsWindow::update(game_started && config::ShowGeometryStats))

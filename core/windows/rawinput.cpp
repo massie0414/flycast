@@ -30,6 +30,7 @@
 #include "ui/geometry_stats_window.h"
 #include "ui/resource_usage_window.h"
 #include "ui/fps_window.h"
+#include "ui/audio_volume_window.h"
 
 #include <algorithm>
 #include <cstring>
@@ -286,7 +287,8 @@ static LRESULT CALLBACK rawWindowProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM
 			// Accept releases to avoid leaving a previously held game key stuck.
 			if (pressed && (textureViewerWindow::hasFocus() || vmuWindow::hasFocus()
 					|| polygonViewerWindow::hasFocus() || geometryStatsWindow::hasFocus()
-					|| resourceUsageWindow::hasFocus() || fpsWindow::hasFocus()))
+					|| resourceUsageWindow::hasFocus() || fpsWindow::hasFocus()
+					|| audioVolumeWindow::hasFocus()))
 				break;
 			u8 keycode = 0xff;
 			if ((ri.data.keyboard.Flags & RI_KEY_E0) != 0)
@@ -313,7 +315,8 @@ static LRESULT CALLBACK rawWindowProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM
 		{
 			if (textureViewerWindow::hasFocus() || vmuWindow::hasFocus()
 					|| polygonViewerWindow::hasFocus() || geometryStatsWindow::hasFocus()
-					|| resourceUsageWindow::hasFocus() || fpsWindow::hasFocus())
+					|| resourceUsageWindow::hasFocus() || fpsWindow::hasFocus()
+					|| audioVolumeWindow::hasFocus())
 			{
 				ri.data.mouse.usFlags = MOUSE_MOVE_RELATIVE;
 				ri.data.mouse.lLastX = ri.data.mouse.lLastY = 0;

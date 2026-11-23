@@ -19,9 +19,13 @@
 #include "settings.h"
 #include "gui.h"
 #include "audio/audiostream.h"
+#include "audio_volume_window.h"
 
 void gui_settings_audio()
 {
+	if (audioVolumeWindow::supported)
+		OptionCheckbox(T("Show Audio Volume in Separate Window"), config::ShowAudioVolume,
+				T("Display audio volume and live stereo levels in a separate window while a game is loaded."));
 	OptionCheckbox(T("Enable DSP"), config::DSPEnabled,
 			T("Enable the Dreamcast Digital Sound Processor. Only recommended on fast platforms"));
     OptionCheckbox(T("Enable VMU Sounds"), config::VmuSound, T("Play VMU beeps when enabled."));

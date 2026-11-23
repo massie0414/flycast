@@ -54,6 +54,7 @@
 #include "oslib/i18n.h"
 #include "gui_font.h"
 #include "texture_viewer_window.h"
+#include "audio_volume_window.h"
 #include "polygon_viewer_window.h"
 #include "vmu_window.h"
 #include "geometry_stats_window.h"
@@ -646,6 +647,8 @@ static void gui_display_commands()
 		OptionCheckbox(T("Geometry Statistics"), config::ShowGeometryStats);
 		if (resourceUsageWindow::supported)
 			OptionCheckbox(T("CPU / Memory Usage"), config::ShowResourceUsage);
+		if (audioVolumeWindow::supported)
+			OptionCheckbox(T("Audio Volume Panel"), config::ShowAudioVolume);
 		if (fpsWindow::detached)
 			OptionCheckbox(T("FPS Window"), config::ShowFPS);
 		if (vmuWindow::supported && settings.platform.isConsole())
@@ -1632,6 +1635,7 @@ void gui_cancel_load() {
 
 void gui_term()
 {
+	audioVolumeWindow::term();
 	fpsWindow::term();
 	geometryStatsWindow::term();
 	resourceUsageWindow::term();
