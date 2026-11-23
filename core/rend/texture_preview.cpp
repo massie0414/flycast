@@ -99,9 +99,8 @@ void capture(const BaseTextureCacheData& texture, int width, int height,
 			? texture.tcw.PalSelect * 16 : (texture.tcw.PalSelect >> 4) * 256;
 	for (int y = 0; y < image->previewHeight; y++)
 	{
-		// Decoded and custom textures use bottom-up rows (as in texture dumps).
-		// Both viewer UIs consume top-down images.
-		const int sourceY = height - 1 - y * height / image->previewHeight;
+		// Preserve source row order in both viewer UIs.
+		const int sourceY = y * height / image->previewHeight;
 		for (int x = 0; x < image->previewWidth; x++)
 		{
 			const size_t index = offset + sourceY * width + x * width / image->previewWidth;

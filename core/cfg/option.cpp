@@ -69,7 +69,11 @@ RendererOption RendererType;
 Option<bool> UseMipmaps("rend.UseMipmaps", true);
 Option<bool> Widescreen("rend.WideScreen");
 Option<bool> SuperWidescreen("rend.SuperWideScreen");
+#if defined(_WIN32) && !defined(TARGET_UWP) && !defined(LIBRETRO)
+Option<bool> ShowFPS("rend.ShowFPS", true);
+#else
 Option<bool> ShowFPS("rend.ShowFPS");
+#endif
 Option<bool> ShowGeometryStats("rend.ShowGeometryStats", true);
 Option<bool> ShowResourceUsage("rend.ShowResourceUsage", true);
 Option<bool> ShowTextureViewer("rend.ShowTextureViewer");

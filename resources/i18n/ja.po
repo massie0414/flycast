@@ -3139,3 +3139,21 @@ msgstr "表示上限に達したため、最初の100,000個の三角形を表�
 msgid "Capacity comes from the game's TA settings. Usage and remaining space are estimates before tile clipping; OPBs and CPU-written data are not included. Actual hardware usage may differ."
 msgstr "容量はゲームのTA設定から取得します。使用量と残り容量はタイルクリッピング前の推定値です。OPBとCPUが直接書き込むデータは含まれず、実機の使用量とは差があります。"
 
+msgid "FPS Window"
+msgstr "FPSウィンドウ"
+
+msgid "Show FPS in Separate Window"
+msgstr "FPSを別ウィンドウに表示"
+
+msgid "Display the game's frame rate in a separate window. Updates once per second."
+msgstr "ゲームのフレームレートを別ウィンドウに表示します。1秒ごとに更新します。"
+
+msgid "Measuring frame rate..."
+msgstr "フレームレートを計測中..."
+
+msgid "Game paused"
+msgstr "ゲームは一時停止中です"
+
+msgid "Fast forward"
+msgstr "早送り中"
+
