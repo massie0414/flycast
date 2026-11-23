@@ -71,6 +71,7 @@ Option<bool> Widescreen("rend.WideScreen");
 Option<bool> SuperWidescreen("rend.SuperWideScreen");
 Option<bool> ShowFPS("rend.ShowFPS");
 Option<bool> ShowGeometryStats("rend.ShowGeometryStats", true);
+Option<bool> ShowResourceUsage("rend.ShowResourceUsage", true);
 Option<bool> ShowTextureViewer("rend.ShowTextureViewer");
 Option<bool> ShowPolygonViewer("rend.ShowPolygonViewer");
 Option<bool> RenderToTextureBuffer("rend.RenderToTextureBuffer");

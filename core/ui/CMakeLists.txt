@@ -39,6 +39,7 @@ if(NOT LIBRETRO)
         target_sources(${PROJECT_NAME} PRIVATE vmu_window.cpp vmu_window.h)
         target_sources(${PROJECT_NAME} PRIVATE polygon_viewer_window.cpp polygon_viewer_window.h)
         target_sources(${PROJECT_NAME} PRIVATE geometry_stats_window.cpp geometry_stats_window.h)
+        target_sources(${PROJECT_NAME} PRIVATE resource_usage_window.cpp resource_usage_window.h)
         target_link_libraries(${PROJECT_NAME} PRIVATE gdi32 user32)
     endif()
 

@@ -3012,6 +3012,40 @@ msgstr "描画バッファやゲーム側の確保領域は未計測です。残
 msgid "Geometry Statistics"
 msgstr "頂点・ポリゴン数"
 
+msgid "CPU / Memory Usage"
+msgstr "CPU・メモリ使用率"
+
+msgid "Show CPU / Memory Usage"
+msgstr "CPU・メモリ使用率を表示"
+
+msgid "Display emulated CPU, main memory and sound memory usage estimates in a separate window."
+msgstr "エミュレート中のCPU・メインメモリ・サウンドメモリの使用率を、推定値として別ウィンドウに表示します。"
+
+msgid "Waiting for usage data. Resume the game to measure."
+msgstr "使用率の計測を待っています。ゲームを再開すると計測します。"
+
+msgid "CPU usage (SH-4, estimated)"
+msgstr "CPU使用率（SH-4・推定）"
+
+msgid "Main memory usage (estimated)"
+msgstr "メインメモリ使用率（推定）"
+
+msgid "Sound memory usage (AICA, estimated)"
+msgstr "サウンドメモリ使用率（AICA・推定）"
+
+#, c-format
+msgid "Occupied: %.2f / %.2f MiB"
+msgstr "データ占有量: %.2f / %.2f MiB"
+
+msgid "Emulated CPU time outside SLEEP. Busy-wait loops count as active. Updated every 0.5 seconds of emulated time."
+msgstr "SLEEP待機を除いたCPU稼働時間の割合です。ループによる待機は稼働に含みます。ゲーム内時間の0.5秒ごとに更新します。"
+
+msgid "Memory estimates count 4 KiB blocks containing nonzero data. Zero-filled allocations and freed data cannot be distinguished; this is not the game's allocated memory or free space."
+msgstr "メモリは0以外のデータを含む4 KiB領域の割合です。0で埋めた確保領域や解放済みデータは判別できないため、ゲームが確保した容量や空き容量とは異なります。"
+
+msgid "Paused - showing the last sample."
+msgstr "一時停止中：直前の計測値を表示しています。"
+
 msgid "PowerVR2 Geometry Statistics"
 msgstr "PowerVR2 頂点・ポリゴン数"
 

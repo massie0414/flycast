@@ -20,6 +20,7 @@
 #include "gui.h"
 #include "vmu_window.h"
 #include "polygon_viewer_window.h"
+#include "resource_usage_window.h"
 #include "wsi/context.h"
 
 enum RenderAPI {
@@ -398,6 +399,9 @@ void gui_settings_video()
     	OptionCheckbox(T("Show FPS Counter"), config::ShowFPS, T("Show on-screen frame/sec counter"));
 		OptionCheckbox(T("Show Geometry Statistics"), config::ShowGeometryStats,
 				T("Show vertex and triangle counts for the latest screen render."));
+		if (resourceUsageWindow::supported)
+			OptionCheckbox(T("Show CPU / Memory Usage"), config::ShowResourceUsage,
+					T("Display emulated CPU, main memory and sound memory usage estimates in a separate window."));
     }
 #ifdef VIDEO_ROUTING
 	ImGui::Spacing();

@@ -437,6 +437,7 @@ extern Option<bool> Widescreen;
 extern Option<bool> SuperWidescreen;
 extern Option<bool> ShowFPS;
 extern Option<bool> ShowGeometryStats;
+extern Option<bool> ShowResourceUsage;
 extern Option<bool> ShowTextureViewer;
 extern Option<bool> ShowPolygonViewer;
 extern Option<bool> RenderToTextureBuffer;

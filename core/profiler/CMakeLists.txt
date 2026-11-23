@@ -1,3 +1,5 @@
+target_sources(${PROJECT_NAME} PRIVATE resource_usage.cpp resource_usage.h resource_usage_metrics.h)
+
 if (ENABLE_DC_PROFILER)
     target_sources(${PROJECT_NAME} PRIVATE
             dc_profiler.cpp

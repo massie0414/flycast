@@ -27,6 +27,7 @@
 #include "emulator.h"
 #include "imgui_driver.h"
 #include "profiler/fc_profiler.h"
+#include "profiler/resource_usage.h"
 #include "oslib/i18n.h"
 #include "rend/texture_preview.h"
 #include "texture_viewer_window.h"
@@ -34,6 +35,7 @@
 #include "rend/polygon_preview.h"
 #include "vmu_window.h"
 #include "geometry_stats_window.h"
+#include "resource_usage_window.h"
 
 #include <chrono>
 #include <thread>
@@ -50,6 +52,8 @@ bool mainui_rend_frame()
 	os_UpdateInputState();
 	if (!geometryStatsWindow::update(game_started && config::ShowGeometryStats))
 		config::ShowGeometryStats = false;
+	if (!resourceUsageWindow::update(game_started && config::ShowResourceUsage, emu.running()))
+		config::ShowResourceUsage = false;
 	if (!vmuWindow::update(game_started && settings.platform.isConsole() && config::ShowVmuWindow))
 		config::ShowVmuWindow = false;
 	if (!textureViewerWindow::update(game_started && config::ShowTextureViewer))
@@ -107,6 +111,7 @@ void mainui_init()
 
 void mainui_term()
 {
+	resourceUsage::setEnabled(false);
 	texturePreview::setEnabled(false);
 	polygonPreview::setEnabled(false);
 	rend_term_renderer();

@@ -41,6 +41,7 @@
 #include "serialize.h"
 #include "hw/pvr/pvr.h"
 #include "profiler/fc_profiler.h"
+#include "profiler/resource_usage.h"
 #include "oslib/storage.h"
 #include "wsi/context.h"
 #include <chrono>
@@ -440,6 +441,7 @@ static void loadSpecialSettings()
 
 void Emulator::dc_reset(bool hard)
 {
+	resourceUsage::reset();
 	if (hard)
 	{
 		NetworkHandshake::term();
@@ -1093,6 +1095,7 @@ void Emulator::vblank()
 {
 	EventManager::event(Event::VBlank);
 	runner.execTasks();
+	resourceUsage::sample();
 	// Time out if a frame hasn't been rendered for 50 ms
 	if (!config::VblankPacing && sh4_sched_now64() - startTime <= 50_sh4ms)
 		return;

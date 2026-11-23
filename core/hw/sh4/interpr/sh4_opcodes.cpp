@@ -8,9 +8,11 @@
 #include "hw/sh4/sh4_core.h"
 #include "hw/sh4/modules/mmu.h"
 #include "hw/sh4/sh4_interrupts.h"
+#include "hw/sh4/sh4_sched.h"
 #include "debug/gdb_server.h"
 #include "hw/sh4/dyna/decoder.h"
 #include "emulator.h"
+#include "profiler/resource_usage.h"
 
 #ifdef STRICT_MODE
 #include "hw/sh4/sh4_cache.h"
@@ -962,8 +964,12 @@ sh4op(i0000_0000_0001_1011)
 	//just wait for an Interrupt
 	int i = 0, s = 1;
 
-	while (!UpdateSystem_INTC())//448
+	while (true)
 	{
+		// Account before ticking: the scheduler can publish a sample at VBlank.
+		resourceUsage::sleepCycles += SH4_TIMESLICE;
+		if (UpdateSystem_INTC())
+			break;
 		if (i++>1000)
 		{
 			s=0;
