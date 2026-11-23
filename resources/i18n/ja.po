@@ -3157,3 +3157,36 @@ msgstr "ゲームは一時停止中です"
 msgid "Fast forward"
 msgstr "早送り中"
 
+msgid "Audio Volume Panel"
+msgstr "音量パネル"
+
+msgid "Show Audio Volume in Separate Window"
+msgstr "音量パネルを別ウィンドウに表示"
+
+msgid "Display audio volume and live stereo levels in a separate window while a game is loaded."
+msgstr "ゲーム起動中、音量設定と左右の音声レベルを別ウィンドウに表示します。"
+
+msgid "Live peak levels (dBFS)"
+msgstr "再生中のピークレベル（dBFS）"
+
+msgid "Paused / audio muted"
+msgstr "一時停止中／音声ミュート中"
+
+msgid "BGM and sound effects share AICA channels and cannot be identified separately. Source meters include volume settings, before final clipping. Output is the final mix; system volume is not included. Scale: -60 to 0 dBFS."
+msgstr "BGMと効果音はAICA音源を共有するため、個別には識別できません。音源別の値は音量設定適用後・最終クリッピング前、出力は合成後の値です。Windows側の音量は含みません。メーターの範囲：-60～0 dBFS。"
+
+msgid "AICA (BGM / sound effects)"
+msgstr "AICA（BGM・効果音）"
+
+msgid "CD-DA"
+msgstr "CD音声（CD-DA）"
+
+msgid "DSP effects"
+msgstr "DSPエフェクト"
+
+msgid "VMU beep"
+msgstr "VMUビープ音"
+
+msgid "Output"
+msgstr "出力（全体）"
+

@@ -403,6 +403,7 @@ public:
 };
 extern AudioVolumeOption AudioVolume;
 extern Option<bool> VmuSound;
+extern Option<bool> ShowAudioVolume;
 
 // Rendering
 

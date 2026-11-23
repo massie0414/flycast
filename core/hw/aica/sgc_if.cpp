@@ -24,6 +24,7 @@
 #include "aica_mem.h"
 #include "dsp.h"
 #include "audio/audiostream.h"
+#include "audio/level_meter.h"
 #include "hw/gdrom/gdrom_if.h"
 #include "cfg/option.h"
 #include "serialize.h"
@@ -1551,12 +1552,16 @@ static u32 cdda_index = CDDA_SIZE;
 
 void AICA_Sample()
 {
+	const auto meterToken = audioMeter::beginSample();
+	audioMeter::Levels meterSamples;
 	SampleType mixl,mixr;
 	mixl = 0;
 	mixr = 0;
 	memset(dsp::state.MIXS, 0, sizeof(dsp::state.MIXS));
 
 	ChannelEx::StepAll(mixl,mixr);
+	if (meterToken)
+		meterSamples[audioMeter::Aica] = {float(mixl), float(mixr)};
 	
 	//OK , generated all Channels  , now DSP/ect + final mix ;p
 	//CDDA EXTS input
@@ -1576,6 +1581,9 @@ void AICA_Sample()
 	//CDDA
 	VolumePan(EXTS0L, dsp_out_vol[16].EFSDL, dsp_out_vol[16].EFPAN, mixl, mixr);
 	VolumePan(EXTS0R, dsp_out_vol[17].EFSDL, dsp_out_vol[17].EFPAN, mixl, mixr);
+	if (meterToken)
+		meterSamples[audioMeter::Cdda] = {mixl - meterSamples[audioMeter::Aica][0],
+				mixr - meterSamples[audioMeter::Aica][1]};
 
 	DSPData->EXTS[0] = EXTS0L;
 	DSPData->EXTS[1] = EXTS0R;
@@ -1586,6 +1594,12 @@ void AICA_Sample()
 
 		for (int i = 0; i < 16; i++)
 			VolumePan(*(s16*)&DSPData->EFREG[i], dsp_out_vol[i].EFSDL, dsp_out_vol[i].EFPAN, mixl, mixr);
+	}
+	if (meterToken)
+	{
+		meterSamples[audioMeter::Dsp] = {mixl - meterSamples[audioMeter::Aica][0] - meterSamples[audioMeter::Cdda][0],
+				mixr - meterSamples[audioMeter::Aica][1] - meterSamples[audioMeter::Cdda][1]};
+		meterSamples[audioMeter::Vmu] = {};
 	}
 
 #ifdef LIBRETRO
@@ -1598,6 +1612,8 @@ void AICA_Sample()
 	if (config::VmuSound)
 	{
 		SampleType b = beep.getSample();
+		if (meterToken)
+			meterSamples[audioMeter::Vmu] = {float(b), float(b)};
 		mixl += b;
 		mixr += b;
 	}
@@ -1629,6 +1645,22 @@ void AICA_Sample()
 
 	mixl = std::clamp(mixl, -32768, 32767);
 	mixr = std::clamp(mixr, -32768, 32767);
+	if (meterToken)
+	{
+		const float hostGain = config::AudioVolume.dbPower();
+		const float sourceGain = val / 32768.f * hostGain / (CommonData->DAC18B ? 4.f : 1.f);
+		for (unsigned source = audioMeter::Aica; source < audioMeter::SourceCount; source++)
+		{
+			auto& sample = meterSamples[source];
+			if (CommonData->Mono)
+				sample[0] = sample[1] = (sample[0] + sample[1]) * 0.5f;
+			sample[0] *= sourceGain;
+			sample[1] *= sourceGain;
+		}
+		// Match the final samples sent to the backend, including host volume.
+		meterSamples[audioMeter::Output] = {float(s16(mixl * hostGain)), float(s16(mixr * hostGain))};
+		audioMeter::record(meterToken, meterSamples);
+	}
 
 	WriteSample(mixr, mixl);
 }
