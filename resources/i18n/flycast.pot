@@ -3100,3 +3100,27 @@ msgstr ""
 #: core/ui/gui_texture_viewer.cpp core/ui/texture_viewer_window.cpp
 msgid "Framebuffers and other allocations are not counted. Remaining is not actual free VRAM."
 msgstr ""
+
+#: core/ui/gui.cpp core/ui/fps_window.cpp
+msgid "FPS Window"
+msgstr ""
+
+#: core/ui/settings_video.cpp
+msgid "Show FPS in Separate Window"
+msgstr ""
+
+#: core/ui/settings_video.cpp
+msgid "Display the game's frame rate in a separate window. Updates once per second."
+msgstr ""
+
+#: core/ui/fps_window.cpp
+msgid "Measuring frame rate..."
+msgstr ""
+
+#: core/ui/fps_window.cpp
+msgid "Game paused"
+msgstr ""
+
+#: core/ui/fps_window.cpp
+msgid "Fast forward"
+msgstr ""
