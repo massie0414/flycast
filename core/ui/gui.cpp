@@ -1630,7 +1630,7 @@ void gui_cancel_load() {
 	gameLoader.cancel();
 }
 
-void gui_term()
+void gui_close_auxiliary_windows()
 {
 	fpsWindow::term();
 	geometryStatsWindow::term();
@@ -1638,6 +1638,11 @@ void gui_term()
 	vmuWindow::term();
 	textureViewerWindow::term();
 	polygonViewerWindow::term();
+}
+
+void gui_term()
+{
+	gui_close_auxiliary_windows();
 	if (inited)
 	{
 		inited = false;
