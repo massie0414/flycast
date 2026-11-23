@@ -2,6 +2,9 @@ target_sources(${PROJECT_NAME} PRIVATE
         audiostream.h)
 
 if(NOT LIBRETRO)
+    if(WIN32 AND NOT WINDOWS_STORE)
+        target_sources(${PROJECT_NAME} PRIVATE level_meter.cpp level_meter.h)
+    endif()
     target_sources(${PROJECT_NAME} PRIVATE
             audiobackend_alsa.cpp
             audiobackend_coreaudio.cpp

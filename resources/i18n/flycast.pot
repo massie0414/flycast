@@ -3124,3 +3124,47 @@ msgstr ""
 #: core/ui/fps_window.cpp
 msgid "Fast forward"
 msgstr ""
+
+#: core/ui/audio_volume_window.cpp core/ui/settings_audio.cpp
+msgid "Audio Volume Panel"
+msgstr ""
+
+#: core/ui/audio_volume_window.cpp core/ui/settings_audio.cpp
+msgid "Show Audio Volume in Separate Window"
+msgstr ""
+
+#: core/ui/audio_volume_window.cpp core/ui/settings_audio.cpp
+msgid "Display audio volume and live stereo levels in a separate window while a game is loaded."
+msgstr ""
+
+#: core/ui/audio_volume_window.cpp core/ui/settings_audio.cpp
+msgid "Live peak levels (dBFS)"
+msgstr ""
+
+#: core/ui/audio_volume_window.cpp core/ui/settings_audio.cpp
+msgid "Paused / audio muted"
+msgstr ""
+
+#: core/ui/audio_volume_window.cpp core/ui/settings_audio.cpp
+msgid "BGM and sound effects share AICA channels and cannot be identified separately. Source meters include volume settings, before final clipping. Output is the final mix; system volume is not included. Scale: -60 to 0 dBFS."
+msgstr ""
+
+#: core/ui/audio_volume_window.cpp core/ui/settings_audio.cpp
+msgid "AICA (BGM / sound effects)"
+msgstr ""
+
+#: core/ui/audio_volume_window.cpp core/ui/settings_audio.cpp
+msgid "CD-DA"
+msgstr ""
+
+#: core/ui/audio_volume_window.cpp core/ui/settings_audio.cpp
+msgid "DSP effects"
+msgstr ""
+
+#: core/ui/audio_volume_window.cpp core/ui/settings_audio.cpp
+msgid "VMU beep"
+msgstr ""
+
+#: core/ui/audio_volume_window.cpp core/ui/settings_audio.cpp
+msgid "Output"
+msgstr ""
